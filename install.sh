@@ -12,4 +12,5 @@ touch log.log
 echo "Updating System"
 sudo pacman -Syu
 
-
+# Will use later
+# sudo pacman -S --needed $(< ~/{backup-location}/package_list.txt)
