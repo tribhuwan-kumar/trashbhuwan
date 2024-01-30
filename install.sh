@@ -14,3 +14,4 @@ sudo pacman -Syu
 
 # Will use later
 # sudo pacman -S --needed $(< ~/{backup-location}/package_list.txt)
+# konsoleprofile colors=YourColorSchemeName
