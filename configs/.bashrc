@@ -41,7 +41,12 @@ export HSTR_TIOCSTI=n
 # NPM
 export PATH=~/.npm-global/bin:$PATH
 
-#bash_completion
+#Bash autocompletion
+# bind 'set show-all-if-ambiguous on'
+# bind 'TAB:menu-complete'
+bind "set completion-ignore-case on"
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+
 source /usr/share/bash-completion/bash_completion
 bind 'set show-all-if-ambiguous on'
 bind 'TAB:menu-complete'
@@ -64,3 +69,12 @@ alias nf='neofetch'
 alias c='clear'
 alias tx='tmux'
 alias ex='exit'
+
+#pip search alias
+alias psrch='pip_search'
+alias pip='function _pip(){
+    if [ $1 = "search" ]; then
+        pip_search "$2";
+    else pip "$@";
+    fi;
+};_pip'
