@@ -1,0 +1,22 @@
+plasma5-applets-latte-separator
+brave-bin
+figma-linux
+gestures
+google-chrome
+hstr-git
+jellyfin-media-player
+kwin-bismuth
+libinput-gestures
+nvm 
+oh-my-posh-bin
+preload
+protonvpn-gui
+python-async_generator
+python-proton-client 0.7.1-2
+python-protonvpn-nm-lib
+sierrabreeze-kwin-decoration-git
+spotube-bin
+teamviewer
+visual-studio-code-bin
+xdman
+yay-git
