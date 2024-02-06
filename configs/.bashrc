@@ -42,14 +42,11 @@ export HSTR_TIOCSTI=n
 export PATH=~/.npm-global/bin:$PATH
 
 #Bash autocompletion
-# bind 'set show-all-if-ambiguous on'
-# bind 'TAB:menu-complete'
-bind "set completion-ignore-case on"
-export VIRTUAL_ENV_DISABLE_PROMPT=1
-
 source /usr/share/bash-completion/bash_completion
+bind "set completion-ignore-case on"
 bind 'set show-all-if-ambiguous on'
 bind 'TAB:menu-complete'
+export VIRTUAL_ENV_DISABLE_PROMPT=1
 
 #FZF
 export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git/*"'
