@@ -9,7 +9,7 @@ TRASH_INFO_DIR="$HOME/.local/share/Trash/info"
 
 # Confirmation func
 ask_confirmation() {
-    read -p "Are you sure you want to empty the trash? This action cannot be undone. [y/N] " RESPONSE
+    read -p "Are you sure you want to empty the trash? This action can't be undone. [y/N] " RESPONSE
     case "$RESPONSE" in
         [yY][eE][sS]|[yY]) 
             return 0
@@ -45,7 +45,7 @@ get_absolute_path() {
 
 # Help
 if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]] || [[ "$1" == "trashbhuwan" ]]; then
-    echo -e "Usage: trashbhuwan [OPTION] [FILE]...\nTrashing & Restoring files\n\nExample: trashbhuwan --put file1 file2\nPuts file1 and file2 in trahs\n\nAvaiable flags:\n    -p,  --put          Put files in the trash\n    -r,  --restore      Restore files from the trash\n    -ls, --list         List trashed files\n    -em, --empty        Empty the trash"
+    echo -e "Usage: trashbhuwan [OPTION] [FILE]...\nTrashing & Restoring files\n\nExample: trashbhuwan --put file directory\nPuts file and directory in trash\n\nAvaiable flags:\n    -p,  --put          Put files & directories in trash\n    -r,  --restore      Restore files from the trash\n    -ls, --list         List trashed files\n    -dl, --delete       Delete trashed files & directories\n    -em, --empty        Empty the trash"
     exit 0
 fi
 
@@ -55,12 +55,32 @@ if [[ "$1" == "--list" ]] || [[ "$1" == "-ls" ]]; then
     exit 0
 fi
 
+# Delete trashed files
+if [[ "$1" == "--delete" ]] || [[ "$1" == "-dl" ]]; then
+    for FILE_NAME in "${@:2}"; do
+        if [ -e "$TRASH_FILES_DIR/$FILE_NAME" ]; then
+            TRASH_INFO_FILE=$(find "$TRASH_INFO_DIR" -name "${FILE_NAME}.trashinfo") 
+
+            if [ -n "$TRASH_INFO_FILE" ]; then
+                rm -rf "${TRASH_FILES_DIR:?}/${FILE_NAME:?}"
+                rm -rf "${TRASH_INFO_FILE:?}"
+                echo "$FILE_NAME is deleted from trash!"
+            else
+                echo "Couldn't find .trashinfo file for $FILE_NAME"
+            fi
+        else
+            echo "$FILE_NAME not found in the trash"
+        fi
+    done
+    exit 0
+fi
+
 # Empty trash
 if [[ "$1" == "--empty" ]] || [[ "$1" == "-e" ]]; then
     ask_confirmation
     echo "Emptying the trash..."
-    rm -rf "$TRASH_FILES_DIR"/*
-    rm -rf "$TRASH_INFO_DIR"/*
+    rm -rf "${TRASH_FILES_DIR:?}"/*
+    rm -rf "${TRASH_INFO_DIR:?}"/*
     echo "Trash has been emptied!!"
     exit 0
 fi
@@ -73,9 +93,9 @@ if [[ "$1" == "--put" ]] || [[ "$1" == "-p" ]]; then
         if [ -e "$FILE_PATH" ]; then 
             mv "$FILE_NAME" "$TRASH_FILES_DIR"
             create_trashinfo "$FILE_PATH"
-            echo "Moved $FILE_NAME to trash"
+            echo "$FILE_NAME is trashed!!"
         else
-            echo "File $FILE_NAME does not exist"
+            echo "$FILE_NAME does not exist"
         fi
     done
     exit 0
@@ -107,13 +127,12 @@ fi
 
 # Check for the arguments
 if [ $# -eq 0 ]; then
-    echo -ne "󰋼 No arguments were provided, See the github page https://github.com/tribhuwan-kumar/trashbhuwan for usage.
-"
+    echo -ne "󰋼 No arguments were provided, See the github page https://github.com/tribhuwan-kumar/trashbhuwan for usage."
     exit 1
 fi
 
-if [[ "$1" != "--list" && "$1" != "-ls" && "$1" != "--empty" && "$1" != "-em" && "$1" != "--put" && "$1" != "-p" && "$1" != "--restore" && "$1" != "-r" ]]; then
+if [[ "$1" != "--list" && "$1" != "-ls" && "$1" != "--empty" && "$1" != "-em" && "$1" != "--put" && "$1" != "-p" && "$1" != "--restore" && "$1" != "-r" && "$1" != "--delete" && "$1" != "-dl" ]]; then
     echo "Invalid option: $1"
-    echo "Usage: [--list|-ls] [--empty|-em] [--put|-p] [--restore|-r] file1 file2 ..."
+    echo "Usage: [--list|-ls] [--put|-p] [--restore|-r] [--delete|-dl] [--empty|-em] [FILE]..."
     exit 1
 fi
