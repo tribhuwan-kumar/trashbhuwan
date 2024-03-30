@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+#<------------------------------CLI Application for managing TRASH------------------------------------>
+# author : @tribhuwan-kumar
+# email : freakybytes@duck.com
+#<------------------------------------------------------------------------------------------>
+
+TRASH_FILES_DIR="$HOME/.local/share/Trash/files"
+TRASH_INFO_DIR="$HOME/.local/share/Trash/info"
+
+# Confirmation func
+ask_confirmation() {
+    read -p "Are you sure you want to empty the trash? This action cannot be undone. [y/N] " RESPONSE
+    case "$RESPONSE" in
+        [yY][eE][sS]|[yY]) 
+            return 0
+            ;;
+        *)
+            echo "Operation cancelled!!"
+            exit 1
+            ;;
+    esac
+}
+
+# Creation of .trashinfo file
+create_trashinfo() {
+    local FILE_PATH="$1"
+    local TRASHINFO_PATH="$TRASH_INFO_DIR/$(basename "$FILE_PATH").trashinfo"
+    local CURRENT_TIME=$(date +%Y-%m-%dT%H:%M:%S)
+    local ORIGINAL_PATH=$(python -c "import urllib.parse; print(urllib.parse.quote('$FILE_PATH'))")
+
+    echo "[Trash Info]" > "$TRASHINFO_PATH"
+    echo "Path=$ORIGINAL_PATH" >> "$TRASHINFO_PATH"
+    echo "DeletionDate=$CURRENT_TIME" >> "$TRASHINFO_PATH"
+}
+
+# Manages relative paths
+get_absolute_path() {
+    local REL_PATH="$1"
+    if [[ "$REL_PATH" == /* ]]; then
+        echo "$REL_PATH"
+    else
+        echo "$(pwd)/$REL_PATH"
+    fi
+}
+
+# Help
+if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]] || [[ "$1" == "trashbhuwan" ]]; then
+    echo -e "Usage: trashbhuwan [OPTION] [FILE]...\nTrashing & Restoring files\n\nExample: trashbhuwan --put file1 file2\nPuts file1 and file2 in trahs\n\nAvaiable flags:\n    -p,  --put          Put files in the trash\n    -r,  --restore      Restore files from the trash\n    -ls, --list         List trashed files\n    -em, --empty        Empty the trash"
+    exit 0
+fi
+
+# List trash
+if [[ "$1" == "--list" ]] || [[ "$1" == "-ls" ]]; then
+    ls -A "$TRASH_FILES_DIR" | awk -F/ '{print $NF}'
+    exit 0
+fi
+
+# Empty trash
+if [[ "$1" == "--empty" ]] || [[ "$1" == "-e" ]]; then
+    ask_confirmation
+    echo "Emptying the trash..."
+    rm -rf "$TRASH_FILES_DIR"/*
+    rm -rf "$TRASH_INFO_DIR"/*
+    echo "Trash has been emptied!!"
+    exit 0
+fi
+
+# Put files in the trash
+if [[ "$1" == "--put" ]] || [[ "$1" == "-p" ]]; then
+    for FILE_NAME in "${@:2}"; do
+        # kioclient5 move "$FILE_NAME" trash:/ # for kde users
+        FILE_PATH=$(get_absolute_path "$FILE_NAME") 
+        if [ -e "$FILE_PATH" ]; then 
+            mv "$FILE_NAME" "$TRASH_FILES_DIR"
+            create_trashinfo "$FILE_PATH"
+            echo "Moved $FILE_NAME to trash"
+        else
+            echo "File $FILE_NAME does not exist"
+        fi
+    done
+    exit 0
+fi
+
+# Restoration of files
+if [[ "$1" == "--restore" ]] || [[ "$1" == "-r" ]]; then
+    for FILE_NAME in "${@:2}"; do
+        if [ -e "$TRASH_FILES_DIR/$FILE_NAME" ]; then
+            TRASH_INFO_FILE=$(find "$TRASH_INFO_DIR" -name "${FILE_NAME}.trashinfo")
+
+            if [ -n "$TRASH_INFO_FILE" ]; then
+                ORIGINAL_PATH=$(grep "Path=" "$TRASH_INFO_FILE" | sed 's/Path=//' | xargs -I {} python -c "import urllib.parse; print(urllib.parse.unquote('{}'))")
+
+                if [ -n "$ORIGINAL_PATH" ]; then
+                    mv "$TRASH_FILES_DIR/$FILE_NAME" "$ORIGINAL_PATH"
+                    echo "Restored $FILE_NAME to $ORIGINAL_PATH"
+                else
+                    echo "Couldn't find original path for $FILE_NAME"
+                fi
+            else
+                echo "Couldn't find original path for $FILE_NAME"
+            fi
+        else
+            echo "Couldn't find $FILE_NAME in trash"
+        fi
+    done
+fi
+
+# Check for the arguments
+if [ $# -eq 0 ]; then
+    echo -ne "󰋼 No arguments were provided, See the github page https://github.com/tribhuwan-kumar/trashbhuwan for usage.
+"
+    exit 1
+fi
+
+if [[ "$1" != "--list" && "$1" != "-ls" && "$1" != "--empty" && "$1" != "-em" && "$1" != "--put" && "$1" != "-p" && "$1" != "--restore" && "$1" != "-r" ]]; then
+    echo "Invalid option: $1"
+    echo "Usage: [--list|-ls] [--empty|-em] [--put|-p] [--restore|-r] file1 file2 ..."
+    exit 1
+fi
