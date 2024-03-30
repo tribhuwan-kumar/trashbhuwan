@@ -9,7 +9,7 @@ git clone https://github.com/tribhuwan-kumar/trashbhuwan.git && cd trashbhuwan
 ```
 
 ### Configuration:
-move, copy or create symbolic line of `trashbhuwan` file to your `$PATH`
+Move, copy or create symbolic link of `trashbhuwan` to your `$PATH`
 
 Move:
 ```bash

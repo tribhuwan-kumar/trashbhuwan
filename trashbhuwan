@@ -21,7 +21,7 @@ ask_confirmation() {
     esac
 }
 
-# Creation of .trashinfo file
+# Create .trashinfo file
 create_trashinfo() {
     local FILE_PATH="$1"
     local TRASHINFO_PATH="$TRASH_INFO_DIR/$(basename "$FILE_PATH").trashinfo"
@@ -33,7 +33,7 @@ create_trashinfo() {
     echo "DeletionDate=$CURRENT_TIME" >> "$TRASHINFO_PATH"
 }
 
-# Manages relative paths
+# Manage relative paths
 get_absolute_path() {
     local REL_PATH="$1"
     if [[ "$REL_PATH" == /* ]]; then
@@ -65,7 +65,7 @@ if [[ "$1" == "--empty" ]] || [[ "$1" == "-e" ]]; then
     exit 0
 fi
 
-# Put files in the trash
+# Put files in trash
 if [[ "$1" == "--put" ]] || [[ "$1" == "-p" ]]; then
     for FILE_NAME in "${@:2}"; do
         # kioclient5 move "$FILE_NAME" trash:/ # for kde users
