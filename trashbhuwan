@@ -4,14 +4,17 @@
 # email : freakybytes@duck.com
 #<------------------------------------------------------------------------------------------>
 
+RED='\033[0;31m'
+NC='\033[0m'
 TRASH_FILES_DIR="$HOME/.local/share/Trash/files"
 TRASH_INFO_DIR="$HOME/.local/share/Trash/info"
 TOTAL_SIZE=$(du -sh "$TRASH_FILES_DIR" | cut -f1)
 
+# consider file name is a file & a directory too
 formatting() {
     local FILENAME="$1"
     local FILESIZE="$2"
-    printf "%-30s %s\n" "$FILENAME" "$FILESIZE"
+    printf "%-8s %s\n" "$FILESIZE" "$FILENAME"
 }
 
 ask_confirmation() {
@@ -56,12 +59,17 @@ fi
 
 # DU trash
 if [[ "$1" == "--list" ]] || [[ "$1" == "-ls" ]]; then
-    for ITEM in "$TRASH_FILES_DIR"/*; do
-        SIZE=$(du -sh "$ITEM" | cut -f1)
-        ITEM=$(basename "$ITEM")
-        formatting "$ITEM" "$SIZE" 
-    done
-    formatting "Total" "$TOTAL_SIZE"
+    printf "${RED}%-8s${NC} ${RED}%s${NC}\\n" "SIZE" "FILES & DIRECTORIES"
+     if [ -z "$(ls -A "$TRASH_FILES_DIR")" ]; then
+        echo -e "\nTrash is empty!!\n"
+    else
+        for ITEM in "$TRASH_FILES_DIR"/*; do
+            SIZE=$(du -sh "$ITEM" | cut -f1)
+            ITEM=$(basename "$ITEM")
+            formatting "$ITEM" "$SIZE" 
+        done
+    fi
+    printf "${RED}%-8s${NC} ${RED}%s${NC}\\n" "$TOTAL_SIZE" "TOTAL SIZE"  
     exit 0
 fi
 
@@ -86,7 +94,7 @@ if [[ "$1" == "--delete" ]] || [[ "$1" == "-dl" ]]; then
 fi
 
 # Empty trash
-if [[ "$1" == "--empty" ]] || [[ "$1" == "-e" ]]; then
+if [[ "$1" == "--empty" ]] || [[ "$1" == "-em" ]]; then
     ask_confirmation
     echo "Emptying the trash..."
     rm -rf "${TRASH_FILES_DIR:?}"/*
