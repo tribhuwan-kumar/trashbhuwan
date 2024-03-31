@@ -127,7 +127,7 @@ fi
 
 # Check for the arguments
 if [ $# -eq 0 ]; then
-    echo -ne "󰋼 No arguments were provided, See the github page https://github.com/tribhuwan-kumar/trashbhuwan for usage."
+    echo -e "󰋼 No arguments were provided, See the github page https://github.com/tribhuwan-kumar/trashbhuwan for usage."
     exit 1
 fi
 
