@@ -5,6 +5,8 @@
 #<------------------------------------------------------------------------------------------>
 
 RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
 NC='\033[0m'
 TRASH_FILES_DIR="$HOME/.local/share/Trash/files"
 TRASH_INFO_DIR="$HOME/.local/share/Trash/info"
@@ -59,7 +61,7 @@ fi
 
 # DU trash
 if [[ "$1" == "--list" ]] || [[ "$1" == "-ls" ]]; then
-    printf "${RED}%-8s${NC} ${RED}%s${NC}\\n" "SIZE" "FILES & DIRECTORIES"
+    printf "${YELLOW}%-8s${NC} ${YELLOW}%s${NC}\\n" "SIZE" "FILES & DIRECTORIES"
      if [ -z "$(ls -A "$TRASH_FILES_DIR")" ]; then
         echo -e "\nTrash is empty!!\n"
     else
@@ -69,7 +71,7 @@ if [[ "$1" == "--list" ]] || [[ "$1" == "-ls" ]]; then
             formatting "$ITEM" "$SIZE" 
         done
     fi
-    printf "${RED}%-8s${NC} ${RED}%s${NC}\\n" "$TOTAL_SIZE" "TOTAL SIZE"  
+    printf "${YELLOW}%-8s${NC} ${YELLOW}%s${NC}\\n" "$TOTAL_SIZE" "TOTAL SIZE"  
     exit 0
 fi
 
@@ -77,17 +79,18 @@ fi
 if [[ "$1" == "--delete" ]] || [[ "$1" == "-dl" ]]; then
     for FILE_NAME in "${@:2}"; do
         if [ -e "$TRASH_FILES_DIR/$FILE_NAME" ]; then
-            TRASH_INFO_FILE=$(find "$TRASH_INFO_DIR" -name "${FILE_NAME}.trashinfo") 
-
+            ESCAPED_FILE_NAME=$(printf '%q' "$FILE_NAME")
+            TRASH_INFO_FILE=$(find "$TRASH_INFO_DIR" -name "*$ESCAPED_FILE_NAME.trashinfo*")
             if [ -n "$TRASH_INFO_FILE" ]; then
                 rm -rf "${TRASH_FILES_DIR:?}/${FILE_NAME:?}"
                 rm -rf "${TRASH_INFO_FILE:?}"
-                echo "$FILE_NAME is deleted from trash!"
+                wait $!
+                printf "${GREEN}%s${NC} %s\\n" "$FILE_NAME" "is deleted from trash!"
             else
-                echo "Couldn't find .trashinfo file for $FILE_NAME"
+                printf "%s ${RED}%s${NC}\\n" "Couldn't find .trashinfo file for" "$FILE_NAME"
             fi
         else
-            echo "$FILE_NAME not found in the trash"
+            printf "${RED}%s${NC} %s\\n" "$FILE_NAME" "is not found in the trash!"
         fi
     done
     exit 0
@@ -96,10 +99,11 @@ fi
 # Empty trash
 if [[ "$1" == "--empty" ]] || [[ "$1" == "-em" ]]; then
     ask_confirmation
-    echo "Emptying the trash..."
+    printf "${GREEN}%s${NC}\\n" "Emptying the trash..."
     rm -rf "${TRASH_FILES_DIR:?}"/*
     rm -rf "${TRASH_INFO_DIR:?}"/*
-    echo "Trash has been emptied!!"
+    wait $!
+    printf "${GREEN}%s${NC}\\n" "Trash has been emptied!!"
     exit 0
 fi
 
@@ -111,9 +115,9 @@ if [[ "$1" == "--put" ]] || [[ "$1" == "-p" ]]; then
         if [ -e "$FILE_PATH" ]; then 
             mv "$FILE_NAME" "$TRASH_FILES_DIR"
             create_trashinfo "$FILE_PATH"
-            echo "$FILE_NAME is trashed!!"
+            printf "${GREEN}%s${NC} %s\\n" "$FILE_NAME" "is trashed!!"
         else
-            echo "$FILE_NAME does not exist"
+            printf "${RED}%s${NC} %s\\n" "$FILE_NAME" "does not exist!!"
         fi
     done
     exit 0
@@ -123,34 +127,34 @@ fi
 if [[ "$1" == "--restore" ]] || [[ "$1" == "-r" ]]; then
     for FILE_NAME in "${@:2}"; do
         if [ -e "$TRASH_FILES_DIR/$FILE_NAME" ]; then
-            TRASH_INFO_FILE=$(find "$TRASH_INFO_DIR" -name "${FILE_NAME}.trashinfo")
-
-            if [ -n "$TRASH_INFO_FILE" ]; then
-                ORIGINAL_PATH=$(grep "Path=" "$TRASH_INFO_FILE" | sed 's/Path=//' | xargs -I {} python -c "import urllib.parse; print(urllib.parse.unquote('{}'))")
-
+            ESCAPED_FILE_NAME=$(printf '%q' "$FILE_NAME")
+            TRASH_INFO_FILE=$(find "$TRASH_INFO_DIR" -name "*$ESCAPED_FILE_NAME.trashinfo*")
+            if [ -n "$TRASH_INFO_FILE" ]; then 
+                ORIGINAL_PATH=$(grep "Path=" "$TRASH_INFO_FILE" | sed 's/Path=//' | xargs -I {} sh -c 'python -c "import urllib.parse; print(urllib.parse.unquote(\"{}\"))"')
                 if [ -n "$ORIGINAL_PATH" ]; then
                     mv "$TRASH_FILES_DIR/$FILE_NAME" "$ORIGINAL_PATH"
-                    echo "Restored $FILE_NAME to $ORIGINAL_PATH"
+                    DIRECTORY=$(dirname "$ORIGINAL_PATH")
+                    printf "%s ${GREEN}%s${NC} %s ${GREEN}%s${NC}\\n" "Restored" "$FILE_NAME" "to" "$DIRECTORY"  
                 else
-                    echo "Couldn't find original path for $FILE_NAME"
+                    printf "%s ${RED}%s${NC}\\n" "Couldn't find original path for" "$FILE_NAME"  
                 fi
             else
-                echo "Couldn't find original path for $FILE_NAME"
+                printf "%s ${RED}%s${NC}\\n" "Couldn't find original path for" "$FILE_NAME"   
             fi
         else
-            echo "Couldn't find $FILE_NAME in trash"
+            printf "%s ${RED}%s${NC} %s\\n" "Couldn't find" "$FILE_NAME" "in trash"
         fi
     done
 fi
 
 # Check for the arguments
 if [ $# -eq 0 ]; then
-    echo -e "󰋼 No arguments were provided, See the github page https://github.com/tribhuwan-kumar/trashbhuwan for usage."
+    printf "${RED}%s${NC}\\n" "󰋼 No arguments were provided, See the github page https://github.com/tribhuwan-kumar/trashbhuwan for usage."
     exit 1
 fi
 
 if [[ "$1" != "--list" && "$1" != "-ls" && "$1" != "--empty" && "$1" != "-em" && "$1" != "--put" && "$1" != "-p" && "$1" != "--restore" && "$1" != "-r" && "$1" != "--delete" && "$1" != "-dl" ]]; then
-    echo "Invalid option: $1"
-    echo "Usage: [--list|-ls] [--put|-p] [--restore|-r] [--delete|-dl] [--empty|-em] [FILE]..."
+    printf "${RED}%s${NC}\\n" "Invalid option: $1"
+    echo "Usage: [--list|-ls] [--put|-p] [--restore|-r] [--delete|-dl] [--empty|-em] [FILE]...[DIRECTORY]"
     exit 1
 fi
