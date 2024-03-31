@@ -6,8 +6,14 @@
 
 TRASH_FILES_DIR="$HOME/.local/share/Trash/files"
 TRASH_INFO_DIR="$HOME/.local/share/Trash/info"
+TOTAL_SIZE=$(du -sh "$TRASH_FILES_DIR" | cut -f1)
 
-# Confirmation func
+formatting() {
+    local FILENAME="$1"
+    local FILESIZE="$2"
+    printf "%-30s %s\n" "$FILENAME" "$FILESIZE"
+}
+
 ask_confirmation() {
     read -p "Are you sure you want to empty the trash? This action can't be undone. [y/N] " RESPONSE
     case "$RESPONSE" in
@@ -21,7 +27,6 @@ ask_confirmation() {
     esac
 }
 
-# Create .trashinfo file
 create_trashinfo() {
     local FILE_PATH="$1"
     local TRASHINFO_PATH="$TRASH_INFO_DIR/$(basename "$FILE_PATH").trashinfo"
@@ -49,9 +54,14 @@ if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]] || [[ "$1" == "trashbhuwan" ]]; 
     exit 0
 fi
 
-# List trash
+# DU trash
 if [[ "$1" == "--list" ]] || [[ "$1" == "-ls" ]]; then
-    ls -A "$TRASH_FILES_DIR" | awk -F/ '{print $NF}'
+    for ITEM in "$TRASH_FILES_DIR"/*; do
+        SIZE=$(du -sh "$ITEM" | cut -f1)
+        ITEM=$(basename "$ITEM")
+        formatting "$ITEM" "$SIZE" 
+    done
+    formatting "Total" "$TOTAL_SIZE"
     exit 0
 fi
 
