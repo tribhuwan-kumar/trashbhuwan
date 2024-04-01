@@ -36,7 +36,7 @@ create_trashinfo() {
     local FILE_PATH="$1"
     local TRASHINFO_PATH="$TRASH_INFO_DIR/$(basename "$FILE_PATH").trashinfo"
     local CURRENT_TIME=$(date +%Y-%m-%dT%H:%M:%S)
-    local ORIGINAL_PATH=$(python -c "import urllib.parse; print(urllib.parse.quote('$FILE_PATH'))")
+    local ORIGINAL_PATH=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$FILE_PATH'))")
 
     echo "[Trash Info]" > "$TRASHINFO_PATH"
     echo "Path=$ORIGINAL_PATH" >> "$TRASHINFO_PATH"
@@ -130,7 +130,7 @@ if [[ "$1" == "--restore" ]] || [[ "$1" == "-r" ]]; then
             ESCAPED_FILE_NAME=$(printf '%q' "$FILE_NAME")
             TRASH_INFO_FILE=$(find "$TRASH_INFO_DIR" -name "*$ESCAPED_FILE_NAME.trashinfo*")
             if [ -n "$TRASH_INFO_FILE" ]; then 
-                ORIGINAL_PATH=$(grep "Path=" "$TRASH_INFO_FILE" | sed 's/Path=//' | xargs -I {} sh -c 'python -c "import urllib.parse; print(urllib.parse.unquote(\"{}\"))"')
+                ORIGINAL_PATH=$(grep "Path=" "$TRASH_INFO_FILE" | sed 's/Path=//' | xargs -I {} sh -c 'python3 -c "import urllib.parse; print(urllib.parse.unquote(\"{}\"))"')
                 if [ -n "$ORIGINAL_PATH" ]; then
                     mv "$TRASH_FILES_DIR/$FILE_NAME" "$ORIGINAL_PATH"
                     DIRECTORY=$(dirname "$ORIGINAL_PATH")
