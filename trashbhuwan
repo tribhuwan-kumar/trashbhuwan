@@ -13,11 +13,26 @@ TRASH_INFO_DIR="$HOME/.local/share/Trash/info"
 TOTAL_SIZE=$(du -sh "$TRASH_FILES_DIR" | cut -f1)
 
 # consider file name is a file & a directory too
+SIZE_WIDTH=8
+DIR_WIDTH=0
+
+# Dynamic formatting
 formatting() {
-    local FILENAME="$1"
-    local FILESIZE="$2"
-    printf "%-8s %s\n" "$FILESIZE" "$FILENAME"
+    local FILESIZE="$1"
+    local PATHS="$2"
+    local FILENAME="$3"
+    printf "%-${SIZE_WIDTH}s %-${DIR_WIDTH}s %-s\n" "$FILESIZE" "$PATHS" "$FILENAME"
 }
+
+for ITEM in "$TRASH_FILES_DIR"/*; do
+    FILENAME=$(basename "$ITEM")
+    TRASH_INFO_FILE=$(find "$TRASH_INFO_DIR" -name "*$FILENAME.trashinfo*")
+    if [ -n "$TRASH_INFO_FILE" ]; then
+        ORIGINAL_PATH=$(grep "Path=" "$TRASH_INFO_FILE" | sed 's/Path=//' | xargs -I {} sh -c 'python3 -c "import urllib.parse; print(urllib.parse.unquote(\"{}\"))"')
+        ORIGINAL_DIR=$(dirname "$ORIGINAL_PATH")
+        [ ${#ORIGINAL_DIR} -gt $DIR_WIDTH ] && DIR_WIDTH=${#ORIGINAL_DIR}
+    fi
+done
 
 ask_confirmation() {
     read -p "Are you sure you want to empty the trash? This action can't be undone. [y/N] " RESPONSE
@@ -60,18 +75,24 @@ if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]] || [[ "$1" == "trashbhuwan" ]]; 
 fi
 
 # DU trash
+let DIR_WIDTH+=8
 if [[ "$1" == "--list" ]] || [[ "$1" == "-ls" ]]; then
-    printf "${YELLOW}%-8s${NC} ${YELLOW}%s${NC}\\n" "SIZE" "FILES & DIRECTORIES"
-     if [ -z "$(ls -A "$TRASH_FILES_DIR")" ]; then
+    printf "${YELLOW}%-${SIZE_WIDTH}s${NC} ${YELLOW}%-${DIR_WIDTH}s${NC} ${YELLOW}%-s${NC}\n" "SIZE" "DELETED FROM" "FILES & DIRS"
+    if [ -z "$(ls -A "$TRASH_FILES_DIR")" ]; then
         echo -e "\nTrash is empty!!\n"
     else
         for ITEM in "$TRASH_FILES_DIR"/*; do
-            SIZE=$(du -sh "$ITEM" | cut -f1)
-            ITEM=$(basename "$ITEM")
-            formatting "$ITEM" "$SIZE" 
+            FILENAME=$(basename "$ITEM")
+            TRASH_INFO_FILE=$(find "$TRASH_INFO_DIR" -name "*$FILENAME.trashinfo*")
+            if [ -n "$TRASH_INFO_FILE" ]; then
+                ORIGINAL_PATH=$(grep "Path=" "$TRASH_INFO_FILE" | sed 's/Path=//' | xargs -I {} sh -c 'python3 -c "import urllib.parse; print(urllib.parse.unquote(\"{}\"))"')
+                ORIGINAL_DIR=$(dirname "$ORIGINAL_PATH")
+                SIZE=$(du -sh "$ITEM" | cut -f1)
+                formatting "$SIZE" "$ORIGINAL_DIR" "$FILENAME"
+            fi
         done
     fi
-    printf "${YELLOW}%-8s${NC} ${YELLOW}%s${NC}\\n" "$TOTAL_SIZE" "TOTAL SIZE"  
+    printf "${YELLOW}%-${SIZE_WIDTH}s${NC} ${YELLOW}%-${DIR_WIDTH}s${NC} ${YELLOW}%-s${NC}\n" "$TOTAL_SIZE" "TOTAL SIZE" "-----------------"
     exit 0
 fi
 
@@ -110,7 +131,6 @@ fi
 # Put files in trash
 if [[ "$1" == "--put" ]] || [[ "$1" == "-p" ]]; then
     for FILE_NAME in "${@:2}"; do
-        # kioclient5 move "$FILE_NAME" trash:/ # for kde users
         FILE_PATH=$(get_absolute_path "$FILE_NAME") 
         if [ -e "$FILE_PATH" ]; then 
             mv "$FILE_NAME" "$TRASH_FILES_DIR"
