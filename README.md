@@ -8,10 +8,12 @@ Available options:
     trashbhuwan --help                              : Show help
     trashbhuwan --empty                             : Empty the trash
     trashbhuwan --list                              : List all trashed files & directories with disk usage
-    trashbhuwan --restore <file/directory>          : Restore trashed file or directory
-    trashbhuwan --delete <file/directory>           : Delete trashed file or directory permanently
+    trashbhuwan --put [file/directory]              : Put files & directories in trash
+    trashbhuwan --show [file/directory]             : Preview trahsed files (requires 'bat' & 'mpv')              
+    trashbhuwan --restore [file/directory]          : Restore trashed file or directory
+    trashbhuwan --delete [file/directory]           : Delete trashed file or directory permanently
 
-Pass multiple files or directories seprating by double quotes or single quotes.
+Pass multiple files or directories separating by double quotes or single quotes.
 
 ## Installation:
 ```bash

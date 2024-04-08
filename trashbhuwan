@@ -70,7 +70,19 @@ get_absolute_path() {
 
 # Help
 if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]] || [[ "$1" == "trashbhuwan" ]]; then
-    echo -e "Usage: trashbhuwan [OPTION] [FILE]...\nTrashing & Restoring files\n\nExample: trashbhuwan --put file directory\nPuts file and directory in trash\n\nAvaiable flags:\n    -p,  --put          Put files & directories in trash\n    -r,  --restore      Restore files from the trash\n    -ls, --list         List trashed files\n    -dl, --delete       Delete trashed files & directories\n    -em, --empty        Empty the trash"
+echo "Usage: trashbhuwan [FLAG] [FILE]...
+Trashing & Restoring files
+
+Example: trashbhuwan --put [FILE] [DIRECTORY]
+Puts file and directory in trash
+
+Avaiable flags:
+    -p,  --put          Put files & directories in trash
+    -r,  --restore      Restore files & directories from the trash
+    -s,  --show         Preview trahsed files
+    -ls, --list         List trashed files & directories along with disk usage
+    -dl, --delete       Delete trashed files & directories
+    -em, --empty        Empty the trash"
     exit 0
 fi
 
@@ -171,13 +183,38 @@ if [[ "$1" == "--restore" ]] || [[ "$1" == "-r" ]]; then
     done
 fi
 
+# Show trahsed files
+if [[ "$1" == "--show" ]] || [[ "$1" == "-s" ]]; then
+    for FILE_NAME in "${@:2}"; do
+        if [ -e "$TRASH_FILES_DIR/$FILE_NAME" ]; then
+            ESCAPED_FILE_NAME=$(printf '%q' "$FILE_NAME")
+            TRASH_FILE_PATH=$(find "$TRASH_FILES_DIR" -name "*$ESCAPED_FILE_NAME*")
+            if [ -n "$TRASH_FILE_PATH" ]; then 
+                if [ ! -f "$TRASH_FILE_PATH" ]; then
+                    printf "${RED}%s${NC} %s\\n" "$FILE_NAME" "is a directory or it doesn't exit in trash!!"
+                    exit 0
+                fi
+                FILE_NAME=$(basename "$TRASH_FILE_PATH")
+                FILE_EXT=${FILE_NAME##*.}
+                if [[ "$FILE_EXT" =~ ^(jpg|jpeg|png|gif|bmp|tiff|webp)$ ]]; then
+                    feh -P "$TRASH_FILE_PATH"
+                elif [[ "$FILE_EXT" =~ ^(mp4|mkv|mov|avi|wmv|webm)$ ]]; then
+                    mpv --msg-level=all=no "$TRASH_FILE_PATH"
+                else
+                    bat "$TRASH_FILE_PATH"
+                fi
+            fi
+        fi
+    done
+fi
+                        
 # Check for the arguments
 if [ $# -eq 0 ]; then
     printf "${RED}%s${NC}\\n" "󰋼 No arguments were provided, See the github page https://github.com/tribhuwan-kumar/trashbhuwan for usage."
     exit 1
 fi
 
-if [[ "$1" != "--list" && "$1" != "-ls" && "$1" != "--empty" && "$1" != "-em" && "$1" != "--put" && "$1" != "-p" && "$1" != "--restore" && "$1" != "-r" && "$1" != "--delete" && "$1" != "-dl" ]]; then
+if [[ "$1" != "--list" && "$1" != "-ls" && "$1" != "--empty" && "$1" != "-em" && "$1" != "--put" && "$1" != "-p" && "$1" != "--restore" && "$1" != "-r" && "$1" != "--delete" && "$1" != "-dl" && "$1" != "--show" && "$1" != "-s" ]]; then
     printf "${RED}%s${NC}\\n" "Invalid option: $1"
     echo "Usage: [--list|-ls] [--put|-p] [--restore|-r] [--delete|-dl] [--empty|-em] [FILE]...[DIRECTORY]"
     exit 1
