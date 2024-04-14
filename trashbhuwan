@@ -8,6 +8,10 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m'
+
+# Enable dotglob
+shopt -s dotglob
+
 TRASH_FILES_DIR="$HOME/.local/share/Trash/files"
 TRASH_INFO_DIR="$HOME/.local/share/Trash/info"
 TOTAL_SIZE=$(du -sh "$TRASH_FILES_DIR" | cut -f1)
@@ -131,13 +135,18 @@ fi
 
 # Empty trash
 if [[ "$1" == "--empty" ]] || [[ "$1" == "-em" ]]; then
-    ask_confirmation
-    printf "${GREEN}%s${NC}\\n" "Emptying the trash..."
-    rm -rf "${TRASH_FILES_DIR:?}"/*
-    rm -rf "${TRASH_INFO_DIR:?}"/*
-    wait $!
-    printf "${GREEN}%s${NC}\\n" "Trash has been emptied!!"
-    exit 0
+    if [ -z "$(ls -A "$TRASH_FILES_DIR")" ]; then
+        printf "${GREEN}%s${NC}\\n" "Trash is already empty!!"
+        exit 0
+    else
+        ask_confirmation
+        printf "${GREEN}%s${NC}\\n" "Emptying the trash..."
+        rm -rf "${TRASH_FILES_DIR:?}"/*
+        rm -rf "${TRASH_INFO_DIR:?}"/*
+        wait $!
+        printf "${GREEN}%s${NC}\\n" "Trash has been emptied!!"
+        exit 0
+    fi
 fi
 
 # Put files in trash
@@ -207,7 +216,10 @@ if [[ "$1" == "--show" ]] || [[ "$1" == "-s" ]]; then
         fi
     done
 fi
-                        
+
+# Disable dotglob
+shopt -u dotglob
+
 # Check for the arguments
 if [ $# -eq 0 ]; then
     printf "${RED}%s${NC}\\n" "󰋼 No arguments were provided, See the github page https://github.com/tribhuwan-kumar/trashbhuwan for usage."

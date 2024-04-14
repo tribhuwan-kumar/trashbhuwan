@@ -9,7 +9,7 @@ Available options:
     trashbhuwan --empty                             : Empty the trash
     trashbhuwan --list                              : List all trashed files & directories with disk usage
     trashbhuwan --put [file/directory]              : Put files & directories in trash
-    trashbhuwan --show [file/directory]             : Preview trahsed files (requires 'bat' & 'mpv')              
+    trashbhuwan --show [file/directory]             : Preview trahsed files (requires 'bat', 'feh' & 'mpv')              
     trashbhuwan --restore [file/directory]          : Restore trashed file or directory
     trashbhuwan --delete [file/directory]           : Delete trashed file or directory permanently
 
@@ -21,6 +21,10 @@ git clone https://github.com/tribhuwan-kumar/trashbhuwan.git && cd trashbhuwan
 ```
 
 ### Configuration:
+
+Run `install.sh` file
+
+#### For manual config
 Move, copy or create symbolic link of `trashbhuwan` to your `$PATH`
 
 Move:
