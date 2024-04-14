@@ -21,10 +21,6 @@ git clone https://github.com/tribhuwan-kumar/trashbhuwan.git && cd trashbhuwan
 ```
 
 ### Configuration:
-
-Run `install.sh` file
-
-#### For manual config
 Move, copy or create symbolic link of `trashbhuwan` to your `$PATH`
 
 Move:
