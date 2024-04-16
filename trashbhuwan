@@ -140,7 +140,6 @@ if [[ "$1" == "--empty" ]] || [[ "$1" == "-em" ]]; then
         exit 0
     else
         ask_confirmation
-        printf "${GREEN}%s${NC}\\n" "Emptying the trash..."
         rm -rf "${TRASH_FILES_DIR:?}"/*
         rm -rf "${TRASH_INFO_DIR:?}"/*
         wait $!
