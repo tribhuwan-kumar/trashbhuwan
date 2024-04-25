@@ -244,7 +244,6 @@ int askConfirmation() {
         return 1;
     } 
     else {
-        printf("Operation cancelled!!\n");
         exit(EXIT_SUCCESS);
     }
 }
@@ -252,7 +251,6 @@ int askConfirmation() {
 // EMPTY THE TRASH
 void emptyTrash(const char *trash_files_dir, const char *trash_info_dir) {
     if (isDirectoryEmpty(trash_files_dir) && isDirectoryEmpty(trash_info_dir)) {
-        printf("Trash is already empty!!\n");
         exit(EXIT_SUCCESS);
     }
     if (!askConfirmation()) {
@@ -306,7 +304,6 @@ void emptyTrash(const char *trash_files_dir, const char *trash_info_dir) {
         }
     }
     closedir(dir);
-    printf("Trash has been emptied!!\n"); 
 }
 
 // CREATE TRASHINFO FILE
@@ -402,7 +399,7 @@ void restoreTrashedfile(const char *fileName) {
 
     snprintf(filePath, sizeof(filePath), "%s/%s", trashFilesDir, fileName);
     if (access(filePath, F_OK) != -1) {
-        snprintf(infoFilePath, sizeof(infoFilePath), "%s/*%s.trashinfo*", trashInfoDir, fileName);
+        snprintf(infoFilePath, sizeof(infoFilePath), "%s/%s.trashinfo", trashInfoDir, fileName);
         glob_t globResult;
         glob(infoFilePath, GLOB_TILDE, NULL, &globResult);
         if (globResult.gl_pathc > 0) {
@@ -425,7 +422,9 @@ void restoreTrashedfile(const char *fileName) {
                                 }
                             }
                             if (rename(filePath, originalPath) == 0) {
-                                printf("Restored '%s' to '%s'\n", fileName, originalDirectory);
+                                if (access(infoFilePath, F_OK) == 0) {
+                                    remove(infoFilePath);
+                                }
                             }
                             else {
                                 printf("Failed to restore %s\n", fileName);
@@ -447,13 +446,40 @@ void restoreTrashedfile(const char *fileName) {
     }
 }
 
+// INDIVIDUALLY DELETE TRASHED FILE
+void deleteTrashedFile(const char *fileName){
+    char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
+    char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
+
+    char trashedFilePath[PATH_MAX];
+    char trashInfoFilePath[PATH_MAX];
+
+    snprintf(trashedFilePath, sizeof(trashedFilePath), "%s/%s", trashFilesDir, fileName);
+    snprintf(trashInfoFilePath, sizeof(trashInfoFilePath), "%s/%s.trashinfo", trashInfoDir, fileName);
+
+    if (access(trashedFilePath, F_OK) == 0 && access(trashInfoFilePath, F_OK) == 0) {
+        if (remove(trashedFilePath) != 0) {
+            if (rmdir(trashedFilePath) != 0) {
+                char deleteCommand[PATH_MAX + 10];
+                snprintf(deleteCommand, sizeof(deleteCommand), "rm -rf \"%s\"", trashedFilePath);
+                if (system(deleteCommand) != 0) {
+                    perror("Error in deleting files");
+                }
+            }
+        }
+        if (remove(trashInfoFilePath) != 0) {
+            perror("Error deleting file");
+        }
+    }
+}
+
 // MAIN FUNCTION
 int main(int argc, char *argv[]) {
     const char* username = getUserName();
     const char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
     const char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
 
-    if (username == NULL || trashFilesDir == NULL || trashInfoDir == NULL) {
+    if (username == NULL && trashFilesDir == NULL && trashInfoDir == NULL) {
         perror("Something went wrong");
         exit(EXIT_FAILURE);
     }
@@ -501,7 +527,7 @@ int main(int argc, char *argv[]) {
         free(duTrashDircommand);
 
         // FORMAT TRASH
-        if (isDirectoryEmpty(trashFilesDir) && isDirectoryEmpty(trashInfoDir)) {
+        if (isDirectoryEmpty(trashFilesDir) || isDirectoryEmpty(trashInfoDir)) {
             printf("Trash is empty!!\n");
         }
         else {
@@ -523,7 +549,6 @@ int main(int argc, char *argv[]) {
                     snprintf(destPath, sizeof(destPath), "%s/%s", trashFilesDir, basename(resolvedPath));
                     if (rename(resolvedPath, destPath) == 0) {
                         createTrashInfo(resolvedPath); 
-                        printf("%s is trashed!!\n", fileNames);
                     }
                     else {
                         perror("Failed to trashed file");
@@ -538,13 +563,21 @@ int main(int argc, char *argv[]) {
         return 0;
     } 
 
+    // INDIVIDUALLY DELETE TRASHED FILE
+    else if (argc > 1 && (strcmp(argv[1], "--delete") == 0 || strcmp(argv[1], "-dl") == 0 )) {
+        for (int i = 2; i < argc; i++) {
+            char *fileNames = argv[i];
+            deleteTrashedFile(fileNames);
+        }
+    }
+
     // RESTORE TRASH
     else if (argc > 1 && (strcmp(argv[1], "--restore") == 0 || strcmp(argv[1], "-r") == 0 )) {
         for (int i = 2; i < argc; i++) {
             char *fileNames = argv[i];
-                restoreTrashedfile(fileNames);
-            }
+            restoreTrashedfile(fileNames);
         }
+    }
 
     // EMPTY TRASH
     else if (strcmp(argv[1], "--empty") == 0 || strcmp(argv[1], "-em") == 0) {
