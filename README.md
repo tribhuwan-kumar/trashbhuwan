@@ -15,6 +15,13 @@ Available options:
 Pass multiple files or directories separating by double quotes or single quotes.
 
 ## Installation:
+Run this command for installation:
+```bash
+curl -o trashbhuwan.c https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/trashbhuwan.c && gcc -o trashbhuwan trashbhuwan.c -lcurl && sudo mv trashbhuwan /usr/local/bin/
+```
+
+### Manual Installation:
+
 ```bash
 git clone https://github.com/tribhuwan-kumar/trashbhuwan.git && cd trashbhuwan
 ```
