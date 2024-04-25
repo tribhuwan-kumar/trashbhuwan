@@ -1,7 +1,7 @@
 # Trashbhuwan
 
 ## Introduction:
-A simple CLI Application for trashing & restoring files & directories. It uses the default trashcan of KDE, GNOME, XFCE, Cinnamon, MATE, and others. `trashbhuwan` remembers the original path of the trashed files & directories, so you can restore them later where they were. It is so minimalistic and easy to use.
+A simple CLI Application for trashing & restoring files & its written in pure `C Language`. It uses the default trashcan of KDE, GNOME, XFCE, Cinnamon, MATE, and others. `trashbhuwan` remembers the original path of the trashed files & directories, so you can restore them later where they were. It is minimalistic and easy to use.
 
 Available options:
 
@@ -18,9 +18,13 @@ Pass multiple files or directories separating by double quotes or single quotes.
 ```bash
 git clone https://github.com/tribhuwan-kumar/trashbhuwan.git && cd trashbhuwan
 ```
+Compile from source code or use executable file from this repo, make sure you have `libcurl` installed:
+```
+gcc -o trashbhuwan trashbhuwan.c -lcurl
+```
 
 ### Configuration:
-Move, copy or create symbolic link of `trashbhuwan` to your `$PATH`
+Now you can either move, copy or create symbolic link of `trashbhuwan` to your `$PATH`
 
 Move:
 ```bash
@@ -36,7 +40,7 @@ sudo ln -s $PWD/trashbhuwan /usr/local/bin/
 ```
 
 ## Usage:
-If you're a [`lf`](https://github.com/gokcehan/lf) user, use this functions & mapping to intergrate `trashbhuwan` with [`lf`](https://github.com/gokcehan/lf):
+If you're a [`lf`](https://github.com/gokcehan/lf) user, use this functions & mapping to intergrate `trashbhuwan` with `lf`:
 ```bash
 # TRASHING
 cmd trash ${{
