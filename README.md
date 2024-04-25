@@ -17,11 +17,11 @@ Pass multiple files or directories separating by double quotes or single quotes.
 ## Installation:
 Run this command for installation:
 ```bash
-curl -o trashbhuwan.c https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/trashbhuwan.c && gcc -o trashbhuwan trashbhuwan.c -lcurl && sudo mv trashbhuwan /usr/local/bin/
+curl -o trashbhuwan.c https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/trashbhuwan.c && gcc -o trashbhuwan trashbhuwan.c -lcurl && mv trashbhuwan ~/.local/bin
 ```
 
-### Manual Installation:
 
+### Manual Installation:
 ```bash
 git clone https://github.com/tribhuwan-kumar/trashbhuwan.git && cd trashbhuwan
 ```
@@ -35,15 +35,15 @@ Now you can either move, copy or create symbolic link of `trashbhuwan` to your `
 
 Move:
 ```bash
-sudo mv trashbhuwan /usr/local/bin/
+mv trashbhuwan ~/.local/bin
 ```
 or Copy:
 ```bash
-sudo cp trashbhuwan /usr/local/bin/
+cp trashbhuwan ~/.local/bin 
 ```
 or Create Symbolic Link:
 ```bash
-sudo ln -s $PWD/trashbhuwan /usr/local/bin/
+ln -s $PWD/trashbhuwan ~/.local/bin 
 ```
 
 ## Usage:
