@@ -174,8 +174,7 @@ if [[ "$1" == "--restore" ]] || [[ "$1" == "-r" ]]; then
                 DIRECTORY=$(dirname "$ORIGINAL_PATH")
                 if [ -n "$ORIGINAL_PATH" ]; then
                     if [ ! -d "$DIRECTORY" ]; then
-                        printf "%s ${YELLOW}%s${NC} %s \n%s \n%s \n%s \n${YELLOW}%s${NC}\\n" "The directory" "$DIRECTORY" "doesn't exist anymore," "So it isn't possible to restore this item to its original path." "You can either recreate that directory & use the restore command again," "Or move that item anywhere else to restore it." "ITEM PATH: $TRASH_FILES_DIR/$FILE_NAME"
-                        exit 0
+                        mkdir "$DIRECTORY"
                     fi
                     mv "$TRASH_FILES_DIR/$FILE_NAME" "$ORIGINAL_PATH"
                     printf "%s ${GREEN}%s${NC} %s ${GREEN}%s${NC}\\n" "Restored" "$FILE_NAME" "to" "$DIRECTORY"  

@@ -1,4 +1,5 @@
 #include <time.h>
+#include <glob.h>
 #include <stdio.h>
 #include <iso646.h>
 #include <stdlib.h>
@@ -69,7 +70,7 @@ void formatting(const char *fileSize, const char *paths, const char *fileName, i
     printf("%-*s %-*s %s\n", sizeWidth, fileSize, dirWidth, paths, fileName);
 }
 
-// MAX DIR WIDTH
+// MAX DIR WIDTH # its necessary to get maximum directory length first
 int getMaxDirWidth(const char *trashFilesDir, const char *trashInfoDir){
     int dirWidth;
     int sizeWidth = 8;  
@@ -143,69 +144,65 @@ void listTrashedFiles(const char *trashFilesDir, const char *trashInfoDir) {
 
     if ((dir = opendir(trashFilesDir)) != NULL) {
         while ((entry = readdir(dir)) != NULL) {
-            if (entry->d_type == DT_REG) {
-                char *fileName = entry->d_name;
-                char trashInfoFilePath[PATH_MAX];
-                snprintf(trashInfoFilePath, PATH_MAX, "%s/%s.trashinfo", trashInfoDir, fileName);
-                
-                struct stat info;
-                if (stat(trashInfoFilePath, &info) == 0) {
-                    if (S_ISREG(info.st_mode)) { 
-                        FILE *trashInfoFile = fopen(trashInfoFilePath, "r"); 
-                        if (trashInfoFile != NULL) {
-                            char line[PATH_MAX]; 
-                            while (fgets(line, PATH_MAX, trashInfoFile) != NULL) {
-                                if (strncmp(line, "Path=", 5) == 0) {
-                                    char *originalEncodedPath = line + 5; 
-                                    if (originalEncodedPath != NULL) {
-                                        char *originalPath = curl_easy_unescape(curl, originalEncodedPath, 0, NULL);
-                                        if (originalPath) {
-                                            // TRASHED FILE DIR AND NAME
-                                            char originalDir[PATH_MAX]; 
-                                            char fileName[FILENAME_MAX];
-                                            char *originalPathCopy = strdup(originalPath);
-                                            snprintf(originalDir, sizeof(originalDir), "%s", dirname(originalPath));
-                                            snprintf(fileName, sizeof(fileName), "%s", basename(originalPathCopy));
-                                            // TRASHED FILESIZE
-                                            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
-                                                char trashFilePath[PATH_MAX];
-                                                snprintf(trashFilePath, sizeof(trashFilePath), "%s/%s", trashFilesDir, entry->d_name);
-                                                size_t commandSize = strlen(trashFilePath) + strlen("du -sh\"\" | cut -f1") + 2;
-                                                char* duTrashFilecommand = (char*)malloc(commandSize);
-                                                if (duTrashFilecommand == NULL) {
-                                                    perror("Memory allocation failed");
-                                                    exit(EXIT_FAILURE);
-                                                }
-                                                snprintf(duTrashFilecommand, commandSize, "du -sh %s | cut -f1", trashFilePath);
-                                                FILE *fp = popen(duTrashFilecommand, "r"); 
-                                                if (fp != NULL) {
-                                                    if (fgets(fileSize, sizeof(fileSize), fp) != NULL) {
-                                                        fileSize[strcspn(fileSize, "\n")] = '\0';
-                                                    }
-                                                    else {
-                                                        perror("Failed to read total size");
-                                                    }
-                                                    pclose(fp);
-                                                }
-                                                else {
-                                                    perror("Failed to run 'du'");
-                                                    exit(EXIT_FAILURE);
-                                                }
-                                                free(duTrashFilecommand);
-                                            }
-                                            fileName[strcspn(fileName, "\n")] = '\0';
-                                            originalDir[strcspn(originalDir, "\n")] = '\0';
-                                            formatting(fileSize, originalDir, fileName, sizeWidth, dirWidth);
-                                            curl_free(originalPath);
+            char *fileName = entry->d_name;
+            char trashInfoFilePath[PATH_MAX];
+            snprintf(trashInfoFilePath, PATH_MAX, "%s/%s.trashinfo", trashInfoDir, fileName);
+
+            struct stat info;
+            if (stat(trashInfoFilePath, &info) == 0 && (S_ISREG(info.st_mode))) {
+                FILE *trashInfoFile = fopen(trashInfoFilePath, "r"); 
+                if (trashInfoFile != NULL) {
+                    char line[PATH_MAX]; 
+                    while (fgets(line, PATH_MAX, trashInfoFile) != NULL) {
+                        if (strncmp(line, "Path=", 5) == 0) {
+                            char *originalEncodedPath = line + 5; 
+                            if (originalEncodedPath != NULL) {
+                                char *originalPath = curl_easy_unescape(curl, originalEncodedPath, 0, NULL);
+                                if (originalPath) {
+                                    // TRASHED FILE DIR AND NAME
+                                    char originalDir[PATH_MAX]; 
+                                    char fileName[FILENAME_MAX];
+                                    char *originalPathCopy = strdup(originalPath);
+                                    snprintf(originalDir, sizeof(originalDir), "%s", dirname(originalPath));
+                                    snprintf(fileName, sizeof(fileName), "%s", basename(originalPathCopy));
+                                    // TRASHED FILESIZE
+                                    if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+                                        char trashFilePath[PATH_MAX];
+                                        snprintf(trashFilePath, sizeof(trashFilePath), "%s/%s", trashFilesDir, entry->d_name);
+                                        size_t commandSize = strlen(trashFilePath) + strlen("du -sh\"\" | cut -f1") + 2;
+                                        char* duTrashFilecommand = (char*)malloc(commandSize);
+                                        if (duTrashFilecommand == NULL) {
+                                            perror("Memory allocation failed");
+                                            exit(EXIT_FAILURE);
                                         }
+                                        snprintf(duTrashFilecommand, commandSize, "du -sh \"%s\" | cut -f1", trashFilePath);
+                                        FILE *fp = popen(duTrashFilecommand, "r"); 
+                                        if (fp != NULL) {
+                                            if (fgets(fileSize, sizeof(fileSize), fp) != NULL) {
+                                                fileSize[strcspn(fileSize, "\n")] = '\0';
+                                            }
+                                            else {
+                                                perror("Failed to read total size");
+                                            }
+                                            pclose(fp);
+                                        }
+                                        else {
+                                            perror("Failed to run 'du'");
+                                            exit(EXIT_FAILURE);
+                                        }
+                                        free(duTrashFilecommand);
                                     }
-                                } 
+                                    fileName[strcspn(fileName, "\n")] = '\0';
+                                    originalDir[strcspn(originalDir, "\n")] = '\0';
+                                    formatting(fileSize, originalDir, fileName, sizeWidth, dirWidth);
+                                    curl_free(originalPath);
+                                }
                             }
-                            fclose(trashInfoFile);
-                        }
+                        } 
                     }
+                    fclose(trashInfoFile);
                 }
-            } 
+            }
         }
         closedir(dir);
     }
@@ -384,6 +381,68 @@ void createTrashInfo(const char *filePath) {
     }
 }
 
+// RESTORE TRASH
+void restoreTrashedfile(const char *fileName) {
+    char filePath[PATH_MAX];
+    char infoFilePath[PATH_MAX];
+    char originalDirectory[PATH_MAX];
+    struct stat st = {0};
+
+    CURL *curl = curl_easy_init();
+    if (!curl) {
+        fprintf(stderr, "Curl initialization failed!\n");
+        exit(EXIT_FAILURE);
+    }
+    char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
+    char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
+
+    snprintf(filePath, sizeof(filePath), "%s/%s", trashFilesDir, fileName);
+    if (access(filePath, F_OK) != -1) {
+        snprintf(infoFilePath, sizeof(infoFilePath), "%s/*%s.trashinfo*", trashInfoDir, fileName);
+        glob_t globResult;
+        glob(infoFilePath, GLOB_TILDE, NULL, &globResult);
+        if (globResult.gl_pathc > 0) {
+            strcpy(infoFilePath, globResult.gl_pathv[0]);
+            FILE *infoFile = fopen(infoFilePath, "r");
+            if (infoFile) {
+                char line[PATH_MAX];
+                while (fgets(line, sizeof(line), infoFile)) {
+                    if (strncmp(line, "Path=", 5) == 0) {
+                        char *originalEncodedPath = line + 5;
+                        if (originalEncodedPath != NULL){
+                            char *originalPath = curl_easy_unescape(curl, originalEncodedPath, 0, NULL);
+                            originalPath[strcspn(originalPath, "\n")] = '\0';
+                            char *originalPathCopy = strdup(originalPath);
+                            strcpy(originalDirectory, dirname(originalPathCopy));
+                            if (stat(originalDirectory, &st) == -1) {
+                                if (mkdir(originalDirectory, 0700) == -1) {
+                                    fprintf(stderr, "Failed to create original directory\n");
+                                    exit(EXIT_FAILURE);
+                                }
+                            }
+                            if (rename(filePath, originalPath) == 0) {
+                                printf("Restored '%s' to '%s'\n", fileName, originalDirectory);
+                            }
+                            else {
+                                printf("Failed to restore %s\n", fileName);
+                            }
+                            break;
+                        }
+                    }
+                }
+                fclose(infoFile);
+            }
+            globfree(&globResult);
+        }
+        else {
+            printf("Couldn't find restoring destination for '%s'\n", fileName);
+        }
+    }
+    else {
+        printf("Couldn't find '%s' in trash\n", fileName);
+    }
+}
+
 // MAIN FUNCTION
 int main(int argc, char *argv[]) {
     const char* username = getUserName();
@@ -474,6 +533,14 @@ int main(int argc, char *argv[]) {
         }
         return 0;
     } 
+
+    // RESTORE TRASH
+    else if (argc > 1 && (strcmp(argv[1], "--restore") == 0 || strcmp(argv[1], "-r") == 0 )) {
+        for (int i = 2; i < argc; i++) {
+            char *fileNames = argv[i];
+                restoreTrashedfile(fileNames);
+            }
+        }
 
     // EMPTY TRASH
     else if (strcmp(argv[1], "--empty") == 0 || strcmp(argv[1], "-em") == 0) {
