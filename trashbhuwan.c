@@ -463,13 +463,16 @@ void deleteTrashedFile(const char *fileName){
                 char deleteCommand[PATH_MAX + 10];
                 snprintf(deleteCommand, sizeof(deleteCommand), "rm -rf \"%s\"", trashedFilePath);
                 if (system(deleteCommand) != 0) {
-                    perror("Error in deleting files");
+                    perror("Error in deleting file");
                 }
             }
         }
         if (remove(trashInfoFilePath) != 0) {
             perror("Error deleting file");
         }
+    }
+    else {
+        fprintf(stderr, "'%s' not found in trash!!\n", basename(trashedFilePath));
     }
 }
 

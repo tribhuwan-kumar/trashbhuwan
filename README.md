@@ -9,7 +9,6 @@ Available options:
     trashbhuwan --empty                             : Empty the trash
     trashbhuwan --list                              : List all trashed files & directories with disk usage
     trashbhuwan --put [file/directory]              : Put files & directories in trash
-    trashbhuwan --show [file/directory]             : Preview trahsed files (requires 'bat', 'feh' & 'mpv')              
     trashbhuwan --restore [file/directory]          : Restore trashed file or directory
     trashbhuwan --delete [file/directory]           : Delete trashed file or directory permanently
 
