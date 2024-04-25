@@ -1,3 +1,7 @@
+//<------------------------------CLI Application for managing TRASH wrtitten in 'C'------------------------------------>
+// author : @tribhuwan-kumar
+// email : freakybytes@duck.com
+//<------------------------------------------------------------------------------------------>
 #include <time.h>
 #include <glob.h>
 #include <stdio.h>
