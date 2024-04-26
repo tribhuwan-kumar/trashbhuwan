@@ -22,7 +22,7 @@ curl -o trashbhuwan.c https://raw.githubusercontent.com/tribhuwan-kumar/trashbhu
 ```
 Precompiled executable Installation:
 ```bash
-curl -O https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/trashbhuwan && sudo mv /usr/local/bin/
+curl -O https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/trashbhuwan && sudo mv trashbhuwan /usr/local/bin/
 ```
 
 ### Manual Installation:
