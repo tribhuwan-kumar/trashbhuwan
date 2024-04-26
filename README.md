@@ -1,7 +1,7 @@
 # Trashbhuwan
 
 ## Introduction:
-A simple CLI Application for trashing & restoring files & its written in pure `C Language`. It uses the default trashcan of KDE, GNOME, XFCE, Cinnamon, MATE, and others. `trashbhuwan` remembers the original path of the trashed files & directories, so you can restore them later where they were. It is minimalistic and easy to use.
+A simple CLI Application for trashing & restoring files & its written in pure C. It uses the default trashcan of KDE, GNOME, XFCE, Cinnamon, MATE, and others. `trashbhuwan` remembers the original path of the trashed files & directories, so you can restore them later where they were. It is minimalistic and easy to use.
 
 Available options:
 
@@ -15,11 +15,15 @@ Available options:
 Pass multiple files or directories separating by double quotes or single quotes.
 
 ## Installation:
-Run this command for installation:
-```bash
-curl -o trashbhuwan.c https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/trashbhuwan.c && gcc -o trashbhuwan trashbhuwan.c -lcurl && mv trashbhuwan ~/.local/bin
-```
 
+Compilation from source code & Installation:
+```bash
+curl -o trashbhuwan.c https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/trashbhuwan.c && gcc -o trashbhuwan trashbhuwan.c -lcurl && sudo mv trashbhuwan /usr/local/bin/
+```
+Precompiled executable Installation:
+```bash
+curl -O https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/trashbhuwan && sudo mv /usr/local/bin/
+```
 
 ### Manual Installation:
 ```bash
@@ -35,15 +39,15 @@ Now you can either move, copy or create symbolic link of `trashbhuwan` to your `
 
 Move:
 ```bash
-mv trashbhuwan ~/.local/bin
+mv trashbhuwan /usr/local/bin/
 ```
 or Copy:
 ```bash
-cp trashbhuwan ~/.local/bin 
+cp trashbhuwan /usr/local/bin/
 ```
 or Create Symbolic Link:
 ```bash
-ln -s $PWD/trashbhuwan ~/.local/bin 
+ln -s $PWD/trashbhuwan /usr/local/bin/
 ```
 
 ## Usage:
