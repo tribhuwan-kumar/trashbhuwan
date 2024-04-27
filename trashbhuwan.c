@@ -89,38 +89,35 @@ int getMaxDirWidth(const char *trashFilesDir, const char *trashInfoDir){
 
     if ((dir = opendir(trashFilesDir)) != NULL) {
         while ((entry = readdir(dir)) != NULL) {
-            if (entry->d_type == DT_REG) {
-                char *fileName = entry->d_name;
-                char trashInfoFileName[PATH_MAX];
-                snprintf(trashInfoFileName, PATH_MAX, "%s/%s.trashinfo", trashInfoDir, fileName);
-
-                struct stat info;
-                if (stat(trashInfoFileName, &info) == 0) {
-                    if (S_ISREG(info.st_mode)) { 
-                        FILE *trashInfoFile = fopen(trashInfoFileName, "r"); 
-                        if (trashInfoFile != NULL) {
-                            char line[PATH_MAX]; 
-                            while (fgets(line, PATH_MAX, trashInfoFile) != NULL) {
-                                if (strncmp(line, "Path=", 5) == 0) {
-                                    char *originalEncodedPath = line + 5; 
-                                    if (originalEncodedPath != NULL) {
-                                        char *originalPath = curl_easy_unescape(curl, originalEncodedPath, 0, NULL);
-                                        if (originalPath) {
-                                            char originalDir[PATH_MAX]; 
-                                            snprintf(originalDir, sizeof(originalDir), "%s", dirname(originalPath));
-                                            if (strlen(originalDir) > dirWidth) {
-                                                dirWidth = strlen(originalDir);
-                                            }
-                                            curl_free(originalPath);
+            char *fileName = entry->d_name;
+            char trashInfoFileName[PATH_MAX];
+            snprintf(trashInfoFileName, PATH_MAX, "%s/%s.trashinfo", trashInfoDir, fileName);
+            struct stat info;
+            if (stat(trashInfoFileName, &info) == 0) {
+                if (S_ISREG(info.st_mode)) { 
+                    FILE *trashInfoFile = fopen(trashInfoFileName, "r"); 
+                    if (trashInfoFile != NULL) {
+                        char line[PATH_MAX]; 
+                        while (fgets(line, PATH_MAX, trashInfoFile) != NULL) {
+                            if (strncmp(line, "Path=", 5) == 0) {
+                                char *originalEncodedPath = line + 5; 
+                                if (originalEncodedPath != NULL) {
+                                    char *originalPath = curl_easy_unescape(curl, originalEncodedPath, 0, NULL);
+                                    if (originalPath) {
+                                        char originalDir[PATH_MAX]; 
+                                        snprintf(originalDir, sizeof(originalDir), "%s", dirname(originalPath));
+                                        if (strlen(originalDir) > dirWidth) {
+                                            dirWidth = strlen(originalDir);
                                         }
+                                        curl_free(originalPath);
                                     }
-                                } 
-                            }
-                            fclose(trashInfoFile);
+                                }
+                            } 
                         }
+                        fclose(trashInfoFile);
                     }
                 }
-            } 
+            }
         }
         closedir(dir);
         dirWidth += 8;
