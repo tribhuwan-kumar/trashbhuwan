@@ -418,15 +418,29 @@ void restoreTrashedfile(const char *fileName) {
                                     exit(EXIT_FAILURE);
                                 }
                             }
-                            if (rename(filePath, originalPath) == 0) {
-                                if (access(infoFilePath, F_OK) == 0) {
-                                    remove(infoFilePath);
+                            if (strncmp(originalPath, "/mnt", 4) == 0) {
+                                char restoreFileCommand[PATH_MAX];
+                                snprintf(restoreFileCommand, sizeof(restoreFileCommand), "mv \"%s\" \"%s\"", filePath, originalPath);
+                                if (system(restoreFileCommand) == 0) {
+                                    if (access(infoFilePath, F_OK) == 0) {
+                                        remove(infoFilePath);
+                                    }
+                                }
+                                else {
+                                    printf("Failed to restore %s\n", fileName);
                                 }
                             }
-                            else {
-                                printf("Failed to restore %s\n", fileName);
+                            if (strncmp(originalPath, "/mnt", 4) != 0) {
+                                if (rename(filePath, originalPath) == 0) {
+                                    if (access(infoFilePath, F_OK) == 0) {
+                                        remove(infoFilePath);
+                                    }
+                                }
+                                else {
+                                    printf("Failed to restore %s\n", fileName);
+                                }
+                                break;
                             }
-                            break;
                         }
                     }
                 }
@@ -547,8 +561,22 @@ int main(int argc, char *argv[]) {
                 if (access(resolvedPath, F_OK) != -1) {
                     char destPath[PATH_MAX];
                     snprintf(destPath, sizeof(destPath), "%s/%s", trashFilesDir, basename(resolvedPath));
+                    if (strncmp(resolvedPath, "/mnt", 4) == 0) {
+                        char putFileCommand[PATH_MAX];
+                        snprintf(putFileCommand, sizeof(putFileCommand), "mv \"%s\" \"%s\"", resolvedPath, destPath);
+                        if (system(putFileCommand) == 0) {
+                            createTrashInfo(resolvedPath); 
+                            free(resolvedPath);
+                            exit(EXIT_SUCCESS);
+                        }
+                        else {
+                            perror("Failed to trashed file");
+                            exit(EXIT_FAILURE);
+                        }
+                    }
                     if (rename(resolvedPath, destPath) == 0) {
                         createTrashInfo(resolvedPath); 
+                        free(resolvedPath);
                     }
                     else {
                         perror("Failed to trashed file");
@@ -557,7 +585,6 @@ int main(int argc, char *argv[]) {
                 else {
                     printf("%s doesn't exist!!\n", fileNames);
                 }
-                free(resolvedPath);
             }
         }
         return 0;
