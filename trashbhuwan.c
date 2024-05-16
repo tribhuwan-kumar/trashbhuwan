@@ -495,17 +495,17 @@ int main(int argc, char *argv[]) {
 
     if (username == NULL && trashFilesDir == NULL && trashInfoDir == NULL) {
         perror("Something went wrong");
-        exit(EXIT_FAILURE);
+        return 1;
     }
 
     // NO ARGUEMENTs
     if (argc == 1) {
-        printf("󰋼 No arguments were provided, See the github page https://github.com/tribhuwan-kumar/trashbhuwan for usage.\n");
+        printf("No arguments were provided, See the github page https://github.com/tribhuwan-kumar/trashbhuwan for usage.\n");
         return 1;
     }
 
     // LIST TRASH
-    else if (argc > 1 && (strcmp(argv[1], "--list") == 0 || strcmp(argv[1], "-ls") == 0 )) {
+    else if (argc == 2 && (strcmp(argv[1], "--list") == 0 || strcmp(argv[1], "-ls") == 0 )) {
         char totalSize[RTSIG_MAX];
         const char *size = "SIZE";
         const char *deleted_from = "DELETED FROM";
@@ -549,11 +549,14 @@ int main(int argc, char *argv[]) {
             listTrashedFiles(trashFilesDir, trashInfoDir);
             printf("%s%-*s%s %s%-*s%s %s%-s%s\n", YELLOW, sizeWidth, totalSize, NC, YELLOW, dirWidth, total_size, NC, YELLOW, dash, NC);
         }
-        exit(EXIT_SUCCESS);
     }
 
     // PUT FILEs IN TRASH
-    else if (argc > 1 && (strcmp(argv[1], "--put") == 0 || strcmp(argv[1], "-p") == 0 )) { 
+    else if (argc >= 2 && (strcmp(argv[1], "--put") == 0 || strcmp(argv[1], "-p") == 0 )) { 
+        if (argc == 2) {
+            printf("No input files were provided!!\n");
+            return 1;
+        }
         for (int i = 2; i < argc; i++) {
             char *fileNames = argv[i];
             char *resolvedPath = getAbsolutePath(fileNames);
@@ -587,11 +590,14 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
-        return 0;
     } 
 
     // INDIVIDUALLY DELETE TRASHED FILE
-    else if (argc > 1 && (strcmp(argv[1], "--delete") == 0 || strcmp(argv[1], "-dl") == 0 )) {
+    else if (argc >= 2 && (strcmp(argv[1], "--delete") == 0 || strcmp(argv[1], "-dl") == 0 )) {
+        if (argc == 2) {
+            printf("No input files were provided!!\n");
+            return 1;
+        }
         for (int i = 2; i < argc; i++) {
             char *fileNames = argv[i];
             deleteTrashedFile(fileNames);
@@ -599,7 +605,11 @@ int main(int argc, char *argv[]) {
     }
 
     // RESTORE TRASH
-    else if (argc > 1 && (strcmp(argv[1], "--restore") == 0 || strcmp(argv[1], "-r") == 0 )) {
+    else if (argc >= 2 && (strcmp(argv[1], "--restore") == 0 || strcmp(argv[1], "-r") == 0 )) {
+        if (argc == 2) {
+            printf("No input files were provided!!\n");
+            return 1;
+        }
         for (int i = 2; i < argc; i++) {
             char *fileNames = argv[i];
             restoreTrashedfile(fileNames);
@@ -607,7 +617,7 @@ int main(int argc, char *argv[]) {
     }
 
     // EMPTY TRASH
-    else if (strcmp(argv[1], "--empty") == 0 || strcmp(argv[1], "-em") == 0) {
+    else if (argc == 2 && strcmp(argv[1], "--empty") == 0 || strcmp(argv[1], "-em") == 0) {
         emptyTrash(trashFilesDir, trashInfoDir);
     }
 
