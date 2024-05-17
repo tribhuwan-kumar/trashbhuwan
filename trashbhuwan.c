@@ -5,14 +5,12 @@
 #include <time.h>
 #include <glob.h>
 #include <stdio.h>
-#include <iso646.h>
 #include <stdlib.h>
 #include <libgen.h>
 #include <dirent.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/stat.h>
-#include <curl/curl.h>
 #include <linux/limits.h>
 
 #define YELLOW "\033[0;33m"
@@ -81,11 +79,6 @@ int getMaxDirWidth(const char *trashFilesDir, const char *trashInfoDir){
 
     DIR *dir;
     struct dirent *entry;
-    CURL *curl = curl_easy_init();
-    if (!curl) {
-        fprintf(stderr, "Curl initialization failed!\n");
-        exit(EXIT_FAILURE);
-    }
 
     if ((dir = opendir(trashFilesDir)) != NULL) {
         while ((entry = readdir(dir)) != NULL) {
@@ -100,16 +93,14 @@ int getMaxDirWidth(const char *trashFilesDir, const char *trashInfoDir){
                         char line[PATH_MAX]; 
                         while (fgets(line, PATH_MAX, trashInfoFile) != NULL) {
                             if (strncmp(line, "Path=", 5) == 0) {
-                                char *originalEncodedPath = line + 5; 
-                                if (originalEncodedPath != NULL) {
-                                    char *originalPath = curl_easy_unescape(curl, originalEncodedPath, 0, NULL);
+                                char *originalPath = line + 5; 
+                                if (originalPath) {
                                     if (originalPath) {
                                         char originalDir[PATH_MAX]; 
                                         snprintf(originalDir, sizeof(originalDir), "%s", dirname(originalPath));
                                         if (strlen(originalDir) > dirWidth) {
                                             dirWidth = strlen(originalDir);
                                         }
-                                        curl_free(originalPath);
                                     }
                                 }
                             } 
@@ -125,7 +116,6 @@ int getMaxDirWidth(const char *trashFilesDir, const char *trashInfoDir){
     else {
         perror("Error opening directory");
     }
-    curl_easy_cleanup(curl);
     return dirWidth;
 }
 
@@ -136,12 +126,6 @@ void listTrashedFiles(const char *trashFilesDir, const char *trashInfoDir) {
     char fileSize[RTSIG_MAX];
     DIR *dir;
     struct dirent *entry;
-
-    CURL *curl = curl_easy_init();
-    if (!curl) {
-        fprintf(stderr, "Curl initialization failed!\n");
-        exit(EXIT_FAILURE);
-    }
 
     if ((dir = opendir(trashFilesDir)) != NULL) {
         while ((entry = readdir(dir)) != NULL) {
@@ -156,48 +140,44 @@ void listTrashedFiles(const char *trashFilesDir, const char *trashInfoDir) {
                     char line[PATH_MAX]; 
                     while (fgets(line, PATH_MAX, trashInfoFile) != NULL) {
                         if (strncmp(line, "Path=", 5) == 0) {
-                            char *originalEncodedPath = line + 5; 
-                            if (originalEncodedPath != NULL) {
-                                char *originalPath = curl_easy_unescape(curl, originalEncodedPath, 0, NULL);
-                                if (originalPath) {
-                                    // TRASHED FILE DIR AND NAME
-                                    char originalDir[PATH_MAX]; 
-                                    char fileName[FILENAME_MAX];
-                                    char *originalPathCopy = strdup(originalPath);
-                                    snprintf(originalDir, sizeof(originalDir), "%s", dirname(originalPath));
-                                    snprintf(fileName, sizeof(fileName), "%s", basename(originalPathCopy));
-                                    // TRASHED FILESIZE
-                                    if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
-                                        char trashFilePath[PATH_MAX];
-                                        snprintf(trashFilePath, sizeof(trashFilePath), "%s/%s", trashFilesDir, entry->d_name);
-                                        size_t commandSize = strlen(trashFilePath) + strlen("du -sh\"\" | cut -f1") + 2;
-                                        char* duTrashFilecommand = (char*)malloc(commandSize);
-                                        if (duTrashFilecommand == NULL) {
-                                            perror("Memory allocation failed");
-                                            exit(EXIT_FAILURE);
-                                        }
-                                        snprintf(duTrashFilecommand, commandSize, "du -sh \"%s\" | cut -f1", trashFilePath);
-                                        FILE *fp = popen(duTrashFilecommand, "r"); 
-                                        if (fp != NULL) {
-                                            if (fgets(fileSize, sizeof(fileSize), fp) != NULL) {
-                                                fileSize[strcspn(fileSize, "\n")] = '\0';
-                                            }
-                                            else {
-                                                perror("Failed to read total size");
-                                            }
-                                            pclose(fp);
+                            char *originalPath = line + 5; 
+                            if (originalPath) {
+                                // TRASHED FILE DIR AND NAME
+                                char originalDir[PATH_MAX]; 
+                                char fileName[FILENAME_MAX];
+                                char *originalPathCopy = strdup(originalPath);
+                                snprintf(originalDir, sizeof(originalDir), "%s", dirname(originalPath));
+                                snprintf(fileName, sizeof(fileName), "%s", basename(originalPathCopy));
+                                // TRASHED FILESIZE
+                                if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+                                    char trashFilePath[PATH_MAX];
+                                    snprintf(trashFilePath, sizeof(trashFilePath), "%s/%s", trashFilesDir, entry->d_name);
+                                    size_t commandSize = strlen(trashFilePath) + strlen("du -sh\"\" | cut -f1") + 2;
+                                    char* duTrashFilecommand = (char*)malloc(commandSize);
+                                    if (duTrashFilecommand == NULL) {
+                                        perror("Memory allocation failed");
+                                        exit(EXIT_FAILURE);
+                                    }
+                                    snprintf(duTrashFilecommand, commandSize, "du -sh \"%s\" | cut -f1", trashFilePath);
+                                    FILE *fp = popen(duTrashFilecommand, "r"); 
+                                    if (fp != NULL) {
+                                        if (fgets(fileSize, sizeof(fileSize), fp) != NULL) {
+                                            fileSize[strcspn(fileSize, "\n")] = '\0';
                                         }
                                         else {
-                                            perror("Failed to run 'du'");
-                                            exit(EXIT_FAILURE);
+                                            perror("Failed to read total size");
                                         }
-                                        free(duTrashFilecommand);
+                                        pclose(fp);
                                     }
-                                    fileName[strcspn(fileName, "\n")] = '\0';
-                                    originalDir[strcspn(originalDir, "\n")] = '\0';
-                                    formatting(fileSize, originalDir, fileName, sizeWidth, dirWidth);
-                                    curl_free(originalPath);
+                                    else {
+                                        perror("Failed to run 'du'");
+                                        exit(EXIT_FAILURE);
+                                    }
+                                    free(duTrashFilecommand);
                                 }
+                                fileName[strcspn(fileName, "\n")] = '\0';
+                                originalDir[strcspn(originalDir, "\n")] = '\0';
+                                formatting(fileSize, originalDir, fileName, sizeWidth, dirWidth);
                             }
                         } 
                     }
@@ -320,26 +300,11 @@ void createTrashInfo(const char *filePath) {
     timeinfo = localtime(&rawtime);
     strftime(currentTime, sizeof(currentTime), "%Y-%m-%dT%H:%M:%S", timeinfo);
 
-    // ENCODE THE FILE PATH
-    char *encodedPath = NULL;
-    CURL *curl = curl_easy_init(); 
-    if (curl) {
-        encodedPath = curl_easy_escape(curl, filePath, 0);
-        if (encodedPath == NULL) {
-            fprintf(stderr, "Failed to encode URL in createTrashInfo\n"); 
-            exit(EXIT_FAILURE);
-        }
-    } 
-    else {
-        fprintf(stderr, "CURL initialization failed\n");
-        exit(EXIT_FAILURE);
-    }
     // CREATE '.trashinfo' FILE
     size_t trashInfoFileNameCharSize = strlen(baseName) + strlen(".trashinfo") + 1;
     char* trashInfoFileName = (char*)malloc(trashInfoFileNameCharSize);
     sprintf(trashInfoFileName, "%s.trashinfo", baseName);
-
-    // WRITE ENCODED PATH
+    
     const char* username = getUserName();
     if (username == NULL) {
         exit(EXIT_FAILURE);
@@ -367,16 +332,11 @@ void createTrashInfo(const char *filePath) {
     else {
         fseek(file, 0, SEEK_END);
     }
-    fprintf(file, "Path=%s\n", encodedPath);
+    fprintf(file, "Path=%s\n", filePath);
     fprintf(file, "DeletionDate=%s\n", currentTime);
-
     fclose(file);
     free(trashInfoFileName);
     free(trashInfoFilePath);
-    curl_easy_cleanup(curl);
-    if (encodedPath) {
-        curl_free(encodedPath); 
-    }
 }
 
 // RESTORE TRASH
@@ -386,11 +346,6 @@ void restoreTrashedfile(const char *fileName) {
     char originalDirectory[PATH_MAX];
     struct stat st = {0};
 
-    CURL *curl = curl_easy_init();
-    if (!curl) {
-        fprintf(stderr, "Curl initialization failed!\n");
-        exit(EXIT_FAILURE);
-    }
     char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
     char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
 
@@ -406,41 +361,38 @@ void restoreTrashedfile(const char *fileName) {
                 char line[PATH_MAX];
                 while (fgets(line, sizeof(line), infoFile)) {
                     if (strncmp(line, "Path=", 5) == 0) {
-                        char *originalEncodedPath = line + 5;
-                        if (originalEncodedPath != NULL){
-                            char *originalPath = curl_easy_unescape(curl, originalEncodedPath, 0, NULL);
-                            originalPath[strcspn(originalPath, "\n")] = '\0';
-                            char *originalPathCopy = strdup(originalPath);
-                            strcpy(originalDirectory, dirname(originalPathCopy));
-                            if (stat(originalDirectory, &st) == -1) {
-                                if (mkdir(originalDirectory, 0700) == -1) {
-                                    fprintf(stderr, "Failed to create original directory\n");
-                                    exit(EXIT_FAILURE);
+                        char *originalPath = line + 5;
+                        originalPath[strcspn(originalPath, "\n")] = '\0';
+                        char *originalPathCopy = strdup(originalPath);
+                        strcpy(originalDirectory, dirname(originalPathCopy));
+                        if (stat(originalDirectory, &st) == -1) {
+                            if (mkdir(originalDirectory, 0700) == -1) {
+                                fprintf(stderr, "Failed to create original directory\n");
+                                exit(EXIT_FAILURE);
+                            }
+                        }
+                        if (strncmp(originalPath, "/mnt", 4) == 0) {
+                            char restoreFileCommand[PATH_MAX];
+                            snprintf(restoreFileCommand, sizeof(restoreFileCommand), "mv \"%s\" \"%s\"", filePath, originalPath);
+                            if (system(restoreFileCommand) == 0) {
+                                if (access(infoFilePath, F_OK) == 0) {
+                                    remove(infoFilePath);
                                 }
                             }
-                            if (strncmp(originalPath, "/mnt", 4) == 0) {
-                                char restoreFileCommand[PATH_MAX];
-                                snprintf(restoreFileCommand, sizeof(restoreFileCommand), "mv \"%s\" \"%s\"", filePath, originalPath);
-                                if (system(restoreFileCommand) == 0) {
-                                    if (access(infoFilePath, F_OK) == 0) {
-                                        remove(infoFilePath);
-                                    }
-                                }
-                                else {
-                                    printf("Failed to restore %s\n", fileName);
+                            else {
+                                printf("Failed to restore %s\n", fileName);
+                            }
+                        }
+                        if (strncmp(originalPath, "/mnt", 4) != 0) {
+                            if (rename(filePath, originalPath) == 0) {
+                                if (access(infoFilePath, F_OK) == 0) {
+                                    remove(infoFilePath);
                                 }
                             }
-                            if (strncmp(originalPath, "/mnt", 4) != 0) {
-                                if (rename(filePath, originalPath) == 0) {
-                                    if (access(infoFilePath, F_OK) == 0) {
-                                        remove(infoFilePath);
-                                    }
-                                }
-                                else {
-                                    printf("Failed to restore %s\n", fileName);
-                                }
-                                break;
+                            else {
+                                printf("Failed to restore %s\n", fileName);
                             }
+                            break;
                         }
                     }
                 }
