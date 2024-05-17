@@ -455,8 +455,12 @@ int main(int argc, char *argv[]) {
 
     // NO ARGUEMENTs
     if (argc == 1) {
-        printf("No arguments were provided, See the github page https://github.com/tribhuwan-kumar/trashbhuwan for usage.\n");
-        return 1;
+        char printAsciiCommand[256];
+        snprintf(printAsciiCommand, sizeof(printAsciiCommand), "%s", "curl -s https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/tests/ascii");
+        if (system(printAsciiCommand) != 0) {
+            exit(EXIT_FAILURE);
+        }
+        return 0;
     }
 
     // LIST TRASH
@@ -525,7 +529,6 @@ int main(int argc, char *argv[]) {
                         counter++;
                     }while (access(destPath, F_OK) == 0);
                 }
-                printf("%s\n",destPath);
                 if (strncmp(resolvedPath, "/mnt", 4) == 0) {
                     char putFileCommand[PATH_MAX];
                     snprintf(putFileCommand, sizeof(putFileCommand), "mv \"%s\" \"%s\"", resolvedPath, destPath);
@@ -548,7 +551,7 @@ int main(int argc, char *argv[]) {
                 }
             }
             else {
-                printf("%s doesn't exist!!\n", fileNames);
+                printf("'%s' doesn't exist!!\n", fileNames);
             }
         }
     }
