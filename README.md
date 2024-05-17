@@ -18,7 +18,7 @@ Pass multiple files or directories separating by double quotes or single quotes.
 
 Compilation from source code & Installation:
 ```bash
-curl -o trashbhuwan.c https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/trashbhuwan.c && gcc -o trashbhuwan trashbhuwan.c -lcurl && sudo mv trashbhuwan /usr/local/bin/
+curl -o trashbhuwan.c https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/trashbhuwan.c && gcc -o trashbhuwan trashbhuwan.c && sudo mv trashbhuwan /usr/local/bin/
 ```
 Precompiled executable Installation:
 ```bash
@@ -29,9 +29,9 @@ curl -O https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/trash
 ```bash
 git clone https://github.com/tribhuwan-kumar/trashbhuwan.git && cd trashbhuwan
 ```
-Compile from source code or use executable file from this repo, make sure you have `libcurl` installed:
+Compile from source code:
 ```
-gcc -o trashbhuwan trashbhuwan.c -lcurl
+gcc -o trashbhuwan trashbhuwan.c
 ```
 
 ### Configuration:
