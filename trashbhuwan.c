@@ -455,12 +455,18 @@ int main(int argc, char *argv[]) {
 
     // NO ARGUEMENTs
     if (argc == 1) {
-        char printAsciiCommand[256];
-        snprintf(printAsciiCommand, sizeof(printAsciiCommand), "%s", "curl -s https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/tests/ascii");
+        char* printAsciiCommand = "curl -s https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/tests/ascii";
+        size_t printAsciiCommandSize = strlen(printAsciiCommand) + 1;
+        char* printAscii = (char*)malloc(printAsciiCommandSize);
+        snprintf(printAscii, printAsciiCommandSize, "%s", printAsciiCommand);
         if (system(printAsciiCommand) != 0) {
+            free(printAscii);
             exit(EXIT_FAILURE);
         }
-        return 0;
+        else {
+            free(printAscii);
+            return 0;
+        }
     }
 
     // LIST TRASH
@@ -551,7 +557,7 @@ int main(int argc, char *argv[]) {
                 }
             }
             else {
-                printf("'%s' doesn't exist!!\n", fileNames);
+                fprintf(stderr, "'%s' doesn't exist!!\n", fileNames);
             }
         }
     }
