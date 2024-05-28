@@ -1,6 +1,6 @@
 //<------------------------------CLI Application for managing TRASH wrtitten in 'C'------------------------------------>
 // author : @tribhuwan-kumar
-// email : freakybytes@duck.com
+// email : trashbhuwan@duck.com
 //<-------------------------------------------------------------------------------------------------------------------->
 #include <time.h>
 #include <glob.h>
@@ -285,7 +285,7 @@ void emptyTrash(const char *trash_files_dir, const char *trash_info_dir) {
 void createTrashInfo(const char *filePath) {
     char *filePathCopy = strdup(filePath);
     const char* username = getUserName();
-    char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
+    const char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
 
     if (filePathCopy == NULL || username == NULL || trashInfoDir == NULL) {
         perror("Something went wrong!");
@@ -349,8 +349,8 @@ void restoreTrashedfile(const char *fileName) {
     char originalDirectory[PATH_MAX];
     struct stat st = {0};
 
-    char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
-    char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
+    const char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
+    const char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
 
     snprintf(filePath, sizeof(filePath), "%s/%s", trashFilesDir, fileName);
     if (access(filePath, F_OK) != -1) {
@@ -408,14 +408,61 @@ void restoreTrashedfile(const char *fileName) {
         }
     }
     else {
-        fprintf(stderr, "Couldn't find '%s' in trash\n", fileName);
+        fprintf(stderr, "Couldn't find '%s' in trash!!\n", fileName);
+    }
+}
+
+// RESTORE FILE ON DIFF DESTINATION
+void restoreTrashedfileOnDest(const char *fileName, const char *destPath) {
+    char filePath[PATH_MAX];
+    char infoFilePath[PATH_MAX];
+    char fileDestPath[PATH_MAX];
+
+    const char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
+    const char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
+
+    snprintf(filePath, sizeof(filePath), "%s/%s", trashFilesDir, fileName);
+    snprintf(infoFilePath, sizeof(infoFilePath), "%s/%s.trashinfo", trashInfoDir, fileName);
+
+    if (access(filePath, F_OK) != -1) {
+        if (access(destPath, F_OK) != -1) {
+            snprintf(fileDestPath, sizeof(fileDestPath), "%s/%s", destPath, fileName);
+            if (strncmp(fileDestPath, "/mnt", 4) == 0) {
+                char restoreFileCommand[PATH_MAX];
+                snprintf(restoreFileCommand, sizeof(restoreFileCommand), "mv \"%s\" \"%s\"", filePath, fileDestPath);
+                if (system(restoreFileCommand) == 0) {
+                    if (access(infoFilePath, F_OK) == 0) {
+                        remove(infoFilePath);
+                    }
+                }
+                else {
+                    fprintf(stderr,"Failed to restore '%s'\n", fileName);
+                }
+            }
+            if (strncmp(fileDestPath, "/mnt", 4) != 0) {
+                if (rename(filePath, fileDestPath) == 0) {
+                    if (access(infoFilePath, F_OK) == 0) {
+                        remove(infoFilePath);
+                    }
+                }
+                else {
+                    fprintf(stderr,"Failed to restore '%s'\n", fileName);
+                }
+            }
+        }
+        else {
+            fprintf(stderr, "Not a valid destination '%s'\n", destPath);
+        }
+    }
+    else {
+        fprintf(stderr, "Couldn't find '%s' in trash!!\n", fileName);
     }
 }
 
 // INDIVIDUALLY DELETE TRASHED FILE
 void deleteTrashedFile(const char *fileName){
-    char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
-    char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
+    const char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
+    const char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
 
     char trashedFilePath[PATH_MAX];
     char trashInfoFilePath[PATH_MAX];
@@ -585,6 +632,23 @@ int main(int argc, char *argv[]) {
             restoreTrashedfile(fileNames);
         }
     }
+    
+    // RESTORE IN SPECIFIED DESTINATION
+    else if (argc >= 2 && (strcmp(argv[1], "--restore-dest") == 0 || strcmp(argv[1], "-rd") == 0 )) {
+        if (argc == 2) {
+            printf("No input files were provided!!\n");
+            return 1;
+        }
+        else if (argc == 3) {
+            printf("Please specify a destination path!!\n");
+            return 1;
+        }
+        char *destPath = argv[argc - 1];
+        for (int i = 2; i < argc - 1; i++) {
+            char *fileNames = argv[i];
+            restoreTrashedfileOnDest(fileNames, destPath);
+        }
+    }
 
     // EMPTY TRASH
     else if (argc == 2 && strcmp(argv[1], "--empty") == 0 || strcmp(argv[1], "-em") == 0) {
@@ -602,11 +666,12 @@ int main(int argc, char *argv[]) {
                "Usage: trashbhuwan --put [FILE] [DIRECTORY]\n"
                "Puts file and directory in trash\n\n"
                "Available flags:\n"
-               "    -p,  --put          Put files & directories in trash\n"
-               "    -r,  --restore      Restore files & directories from the trash\n"
-               "    -ls, --list         List trashed files & directories along with disk usage\n"
-               "    -dl, --delete       Individually Delete trashed files & directories\n"
-               "    -em, --empty        Empty the trash\n"
+               "    -p,  --put              Put files & directories in trash\n"
+               "    -r,  --restore          Restore files & directories from trash\n"
+               "    -rd, --restore-dest     Restore files & directories to specific destination\n"
+               "    -ls, --list             List trashed files & directories along with disk usage\n"
+               "    -dl, --delete           Individually Delete trashed files & directories\n"
+               "    -em, --empty            Empty the trash\n"
                "\nReport bugs to: <https://github.com/tribhuwan-kumar/trashbhuwan/issues>\n"
                "'trashbhuwan' home page: <https://github.com/tribhuwan-kumar/trashbhuwan>\n"
                "General more help: <https://github.com/tribhuwan-kumar/trashbhuwan#introduction>\n");

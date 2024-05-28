@@ -1,7 +1,7 @@
 # Trashbhuwan
 
 ## Introduction:
-A simple CLI Application for trashing & restoring files & its written in pure C. It uses the default trashcan of KDE, GNOME, XFCE, Cinnamon, MATE, and others. `trashbhuwan` remembers the original path of the trashed files & directories, so you can restore them later where they were. It is minimalistic and easy to use.
+A simple CLI Application for trashing & restoring files & its written in pure C. It uses the default trashcan of every Linux distribution. `trashbhuwan` remembers the original path of the trashed files & directories, so you can restore them later where they were. It is created with developer productivity in mind.
 
 Available options:
 
@@ -10,9 +10,10 @@ Available options:
     trashbhuwan --list                              : List all trashed files & directories with disk usage
     trashbhuwan --put [file/directory]              : Put files & directories in trash
     trashbhuwan --restore [file/directory]          : Restore trashed file or directory
+    trashbhuwan --restore-dest [file/directory]     : Restore trashed file or directory to specified destination
     trashbhuwan --delete [file/directory]           : Delete trashed file or directory permanently
 
-Pass multiple files or directories separating by double quotes or single quotes.
+Pass multiple files separating by double quotes or single quotes.
 
 ## Installation:
 
