@@ -643,10 +643,12 @@ int main(int argc, char *argv[]) {
             printf("Please specify a destination path!!\n");
             return 1;
         }
-        char *destPath = argv[argc - 1];
-        for (int i = 2; i < argc - 1; i++) {
-            char *fileNames = argv[i];
-            restoreTrashedfileOnDest(fileNames, destPath);
+        char *destPath = getAbsolutePath(argv[argc - 1]);
+        if (destPath != NULL) {
+            for (int i = 2; i < argc - 1; i++) {
+                char *fileNames = argv[i];
+                restoreTrashedfileOnDest(fileNames, destPath);
+            }
         }
     }
 
