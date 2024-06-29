@@ -75,7 +75,7 @@ void formatting(const char *fileSize, const char *paths, const char *fileName, i
 
 // MAX DIR WIDTH # its necessary to get maximum directory length first
 int getMaxDirWidth(const char *trashFilesDir, const char *trashInfoDir){
-    int dirWidth;
+    int dirWidth = 0;
     int sizeWidth = 8;  
 
     DIR *dir;
@@ -145,7 +145,6 @@ void listTrashedFiles(const char *trashFilesDir, const char *trashInfoDir) {
                             if (originalPath) {
                                 // TRASHED FILE DIR AND NAME
                                 char originalDir[PATH_MAX]; 
-                                char *originalPathCopy = strdup(originalPath);
                                 snprintf(originalDir, sizeof(originalDir), "%s", dirname(originalPath));
                                 // TRASHED FILESIZE
                                 if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
@@ -283,9 +282,9 @@ void emptyTrash(const char *trash_files_dir, const char *trash_info_dir) {
 
 // CREATE TRASHINFO FILE
 void createTrashInfo(const char *filePath) {
-    char *filePathCopy = strdup(filePath);
     const char* username = getUserName();
-    const char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
+    char *filePathCopy = strdup(filePath);
+    char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
 
     if (filePathCopy == NULL || username == NULL || trashInfoDir == NULL) {
         perror("Something went wrong!");
@@ -338,6 +337,8 @@ void createTrashInfo(const char *filePath) {
     fprintf(file, "Path=%s\n", filePath);
     fprintf(file, "DeletionDate=%s\n", currentTime);
     fclose(file);
+    free(trashInfoDir);
+    free(filePathCopy);
     free(trashInfoFileName);
     free(trashInfoFilePath);
 }
@@ -349,8 +350,8 @@ void restoreTrashedfile(const char *fileName) {
     char originalDirectory[PATH_MAX];
     struct stat st = {0};
 
-    const char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
-    const char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
+    char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
+    char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
 
     snprintf(filePath, sizeof(filePath), "%s/%s", trashFilesDir, fileName);
     if (access(filePath, F_OK) != -1) {
@@ -368,10 +369,10 @@ void restoreTrashedfile(const char *fileName) {
                         originalPath[strcspn(originalPath, "\n")] = '\0';
                         char *originalPathCopy = strdup(originalPath);
                         strcpy(originalDirectory, dirname(originalPathCopy));
+                        free(originalPathCopy);
                         if (stat(originalDirectory, &st) == -1) {
                             if (mkdir(originalDirectory, 0700) == -1) {
                                 perror( "Failed to create original directory\n");
-                                exit(EXIT_FAILURE);
                             }
                         }
                         if (strncmp(originalPath, "/mnt", 4) == 0) {
@@ -410,6 +411,8 @@ void restoreTrashedfile(const char *fileName) {
     else {
         fprintf(stderr, "Couldn't find '%s' in trash!!\n", fileName);
     }
+    free(trashInfoDir);
+    free(trashFilesDir);
 }
 
 // RESTORE FILE ON DIFF DESTINATION
@@ -418,8 +421,8 @@ void restoreTrashedfileOnDest(const char *fileName, const char *destPath) {
     char infoFilePath[PATH_MAX];
     char fileDestPath[PATH_MAX];
 
-    const char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
-    const char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
+    char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
+    char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
 
     snprintf(filePath, sizeof(filePath), "%s/%s", trashFilesDir, fileName);
     snprintf(infoFilePath, sizeof(infoFilePath), "%s/%s.trashinfo", trashInfoDir, fileName);
@@ -457,12 +460,14 @@ void restoreTrashedfileOnDest(const char *fileName, const char *destPath) {
     else {
         fprintf(stderr, "Couldn't find '%s' in trash!!\n", fileName);
     }
+    free(trashInfoDir);
+    free(trashFilesDir);
 }
 
 // INDIVIDUALLY DELETE TRASHED FILE
 void deleteTrashedFile(const char *fileName){
-    const char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
-    const char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
+    char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
+    char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
 
     char trashedFilePath[PATH_MAX];
     char trashInfoFilePath[PATH_MAX];
@@ -487,17 +492,18 @@ void deleteTrashedFile(const char *fileName){
     else {
         fprintf(stderr, "'%s' not found in trash!!\n", basename(trashedFilePath));
     }
+    free(trashInfoDir);
+    free(trashFilesDir);
 }
 
 // MAIN FUNCTION
 int main(int argc, char *argv[]) {
     const char* username = getUserName();
-    const char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
-    const char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
+    char* trashFilesDir = getPath("/home/", "/.local/share/Trash/files");
+    char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
 
     if (username == NULL || trashFilesDir == NULL || trashInfoDir == NULL) {
         perror("Something went wrong");
-        return 1;
     }
 
     // NO ARGUEMENTs
@@ -508,11 +514,9 @@ int main(int argc, char *argv[]) {
         snprintf(printAscii, printAsciiCommandSize, "%s", printAsciiCommand);
         if (system(printAsciiCommand) != 0) {
             free(printAscii);
-            exit(EXIT_FAILURE);
         }
         else {
             free(printAscii);
-            return 0;
         }
     }
 
@@ -567,7 +571,6 @@ int main(int argc, char *argv[]) {
     else if (argc >= 2 && (strcmp(argv[1], "--put") == 0 || strcmp(argv[1], "-p") == 0 )) { 
         if (argc == 2) {
             printf("No input files were provided!!\n");
-            return 1;
         }
         for (int i = 2; i < argc; i++) {
             char *fileNames = argv[i];
@@ -587,25 +590,22 @@ int main(int argc, char *argv[]) {
                     snprintf(putFileCommand, sizeof(putFileCommand), "mv \"%s\" \"%s\"", resolvedPath, destPath);
                     if (system(putFileCommand) == 0) {
                         createTrashInfo(resolvedPath); 
-                        free(resolvedPath);
-                        exit(EXIT_SUCCESS);
                     }
                     else {
                         perror("Failed to trashed file");
-                        exit(EXIT_FAILURE);
                     }
                 }
                 else if (rename(resolvedPath, destPath) == 0) {
                     createTrashInfo(resolvedPath); 
-                    free(resolvedPath);
                 }
                 else {
-                    perror("Failed to trashed file");
+                    perror("Failed to trash file");
                 }
             }
             else {
                 fprintf(stderr, "'%s' doesn't exist!!\n", fileNames);
             }
+            free(resolvedPath);
         }
     }
 
@@ -613,7 +613,6 @@ int main(int argc, char *argv[]) {
     else if (argc >= 2 && (strcmp(argv[1], "--delete") == 0 || strcmp(argv[1], "-dl") == 0 )) {
         if (argc == 2) {
             printf("No input files were provided!!\n");
-            return 1;
         }
         for (int i = 2; i < argc; i++) {
             char *fileNames = argv[i];
@@ -625,7 +624,6 @@ int main(int argc, char *argv[]) {
     else if (argc >= 2 && (strcmp(argv[1], "--restore") == 0 || strcmp(argv[1], "-r") == 0 )) {
         if (argc == 2) {
             printf("No input files were provided!!\n");
-            return 1;
         }
         for (int i = 2; i < argc; i++) {
             char *fileNames = argv[i];
@@ -637,11 +635,9 @@ int main(int argc, char *argv[]) {
     else if (argc >= 2 && (strcmp(argv[1], "--restore-dest") == 0 || strcmp(argv[1], "-rd") == 0 )) {
         if (argc == 2) {
             printf("No input files were provided!!\n");
-            return 1;
         }
         else if (argc == 3) {
             printf("Please specify a destination path!!\n");
-            return 1;
         }
         char *destPath = getAbsolutePath(argv[argc - 1]);
         if (destPath != NULL) {
@@ -650,6 +646,7 @@ int main(int argc, char *argv[]) {
                 restoreTrashedfileOnDest(fileNames, destPath);
             }
         }
+        free(destPath);
     }
 
     // EMPTY TRASH
@@ -684,9 +681,10 @@ int main(int argc, char *argv[]) {
         printf("Invalid option: %s\n", argv[1]);
         printf("Usage: [--list|-ls] [--put|-p] [--restore|-r] [--delete|-dl] [--empty|-em] [FILE]...[DIRECTORY]\n"
                "Try 'trashbhuwan --help' for more information\n");
-        return 1;
     }
 
+    free(trashInfoDir);
+    free(trashFilesDir);
     return 0;
 }
 
