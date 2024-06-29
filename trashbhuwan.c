@@ -281,12 +281,10 @@ void emptyTrash(const char *trash_files_dir, const char *trash_info_dir) {
 }
 
 // CREATE TRASHINFO FILE
-void createTrashInfo(const char *filePath) {
-    const char* username = getUserName();
+void createTrashInfo(const char *filePath, const char *trashInfoDir) {
     char *filePathCopy = strdup(filePath);
-    char* trashInfoDir = getPath("/home/", "/.local/share/Trash/info");
 
-    if (filePathCopy == NULL || username == NULL || trashInfoDir == NULL) {
+    if (filePathCopy == NULL || trashInfoDir == NULL) {
         perror("Something went wrong!");
         exit(EXIT_FAILURE);
     }
@@ -302,25 +300,22 @@ void createTrashInfo(const char *filePath) {
     strftime(currentTime, sizeof(currentTime), "%Y-%m-%dT%H:%M:%S", timeinfo);
 
     // CREATE '.trashinfo' FILE
-    size_t trashInfoFileNameCharSize = strlen(baseName) + strlen(".trashinfo") + 1;
+    size_t trashInfoFileNameCharSize = strlen(baseName) + strlen(".trashinfo") + 5;
     char* trashInfoFileName = (char*)malloc(trashInfoFileNameCharSize);
-    sprintf(trashInfoFileName, "%s.trashinfo", baseName);
+    snprintf(trashInfoFileName, trashInfoFileNameCharSize, "%s.trashinfo", baseName);
     
     size_t trashInfoFilePathCharSize = strlen(trashInfoDir) + strlen(trashInfoFileName) + strlen(currentTime) + 2;
     char* trashInfoFilePath = (char*)malloc(trashInfoFilePathCharSize); 
-    if (!trashInfoFilePath) {
-        perror("Error in  allocating memory for 'trashInfoFilePath'"); 
-        exit(EXIT_FAILURE);
-    }
+    snprintf(trashInfoFilePath, trashInfoFilePathCharSize, "%s/%s", trashInfoDir, trashInfoFileName);
 
-    sprintf(trashInfoFilePath, "%s/%s", trashInfoDir, trashInfoFileName);
     if (access(trashInfoFilePath, F_OK) == 0) {
         int counter = 1;
-        do {
-            sprintf(trashInfoFileName, "%s-%d.trashinfo", baseName, counter);
-            sprintf(trashInfoFilePath, "%s/%s", trashInfoDir, trashInfoFileName);
+        while (access(trashInfoFilePath, F_OK) == 0) {
+
+            snprintf(trashInfoFileName, trashInfoFileNameCharSize, "%s-%d.trashinfo", baseName, counter);
+            snprintf(trashInfoFilePath, trashInfoFilePathCharSize, "%s/%s", trashInfoDir, trashInfoFileName);
             counter++;
-        }while (access(trashInfoFilePath, F_OK) == 0);
+        }
     }
 
     FILE *file = fopen(trashInfoFilePath, "w");
@@ -337,7 +332,6 @@ void createTrashInfo(const char *filePath) {
     fprintf(file, "Path=%s\n", filePath);
     fprintf(file, "DeletionDate=%s\n", currentTime);
     fclose(file);
-    free(trashInfoDir);
     free(filePathCopy);
     free(trashInfoFileName);
     free(trashInfoFilePath);
@@ -589,14 +583,14 @@ int main(int argc, char *argv[]) {
                     char putFileCommand[PATH_MAX];
                     snprintf(putFileCommand, sizeof(putFileCommand), "mv \"%s\" \"%s\"", resolvedPath, destPath);
                     if (system(putFileCommand) == 0) {
-                        createTrashInfo(resolvedPath); 
+                        createTrashInfo(resolvedPath, trashInfoDir); 
                     }
                     else {
                         perror("Failed to trashed file");
                     }
                 }
                 else if (rename(resolvedPath, destPath) == 0) {
-                    createTrashInfo(resolvedPath); 
+                    createTrashInfo(resolvedPath, trashInfoDir); 
                 }
                 else {
                     perror("Failed to trash file");
