@@ -3,7 +3,6 @@
 // email : trashbhuwan@duck.com
 //<-------------------------------------------------------------------------------------------------------------------->
 #include <time.h>
-#include <glob.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <libgen.h>
@@ -350,10 +349,7 @@ void restoreTrashedfile(const char *fileName) {
     snprintf(filePath, sizeof(filePath), "%s/%s", trashFilesDir, fileName);
     if (access(filePath, F_OK) != -1) {
         snprintf(infoFilePath, sizeof(infoFilePath), "%s/%s.trashinfo", trashInfoDir, fileName);
-        glob_t globResult;
-        glob(infoFilePath, GLOB_TILDE, NULL, &globResult);
-        if (globResult.gl_pathc > 0) {
-            strcpy(infoFilePath, globResult.gl_pathv[0]);
+        if (access(infoFilePath, F_OK) != -1) {
             FILE *infoFile = fopen(infoFilePath, "r");
             if (infoFile) {
                 char line[PATH_MAX];
@@ -396,7 +392,6 @@ void restoreTrashedfile(const char *fileName) {
                 }
                 fclose(infoFile);
             }
-            globfree(&globResult);
         }
         else {
             fprintf(stderr, "Couldn't find restoring destination for '%s'\n", fileName);
