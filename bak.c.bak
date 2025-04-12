@@ -1,0 +1,121 @@
+/* void list_recycle_bin() { */
+/*     HRESULT hr; */
+/*     IShellFolder *pDesktopFolder = NULL; */
+/*     IShellFolder *pRecycleBinFolder = NULL; */
+/*     IEnumIDList *pEnumIDList = NULL; */
+/*     LPITEMIDLIST pidlRecycleBin = NULL; */
+/*     LPITEMIDLIST pidlItem = NULL; */
+/*     STRRET strret; */
+/*     WCHAR szDisplayName[MAX_PATH]; */
+/*     WIN32_FIND_DATA wfd; */
+/**/
+/*     // Get the desktop folder */
+/*     hr = SHGetDesktopFolder(&pDesktopFolder); */
+/*     if (FAILED(hr)) { */
+/*         printf("Failed to get desktop folder.\n"); */
+/*         return; */
+/*     } */
+/**/
+/*     // Get the Recycle Bin folder */
+/*     hr = SHGetSpecialFolderLocation(NULL, CSIDL_BITBUCKET, &pidlRecycleBin); */
+/*     if (FAILED(hr)) { */
+/*         printf("Failed to get Recycle Bin folder.\n"); */
+/*         pDesktopFolder->Release(); */
+/*         return; */
+/*     } */
+/**/
+/*     hr = pDesktopFolder->BindToObject(pidlRecycleBin, NULL, IID_IShellFolder, (void**)&pRecycleBinFolder); */
+/*     if (FAILED(hr)) { */
+/*         printf("Failed to bind to Recycle Bin folder.\n"); */
+/*         CoTaskMemFree(pidlRecycleBin); */
+/*         pDesktopFolder->Release(); */
+/*         return; */
+/*     } */
+/**/
+/*     // Enumerate the items in the Recycle Bin */
+/*     hr = pRecycleBinFolder->EnumObjects(NULL, SHCONTF_FOLDERS | SHCONTF_NONFOLDERS, &pEnumIDList); */
+/*     if (FAILED(hr)) { */
+/*         printf("Failed to enumerate Recycle Bin items.\n"); */
+/*         pRecycleBinFolder->Release(); */
+/*         CoTaskMemFree(pidlRecycleBin); */
+/*         pDesktopFolder->Release(); */
+/*         return; */
+/*     } */
+/**/
+/*     while (pEnumIDList->Next(1, &pidlItem, NULL) == S_OK) { */
+/*         // Get the display name of the item */
+/*         hr = pRecycleBinFolder->GetDisplayNameOf(pidlItem, SHGDN_NORMAL, &strret); */
+/*         if (SUCCEEDED(hr)) { */
+/*             StrRetToBufW(&strret, pidlItem, szDisplayName, MAX_PATH); */
+/*             printf("File: %ls\n", szDisplayName); */
+/*         } */
+/**/
+/*         // Get the file size */
+/*         if (SHGetDataFromIDList(pRecycleBinFolder, pidlItem, SHGDFIL_FINDDATA, &wfd, sizeof(wfd)) == S_OK) { */
+/*             printf("Size: %llu bytes\n", ((ULONGLONG)wfd.nFileSizeHigh << 32) + wfd.nFileSizeLow); */
+/*         } */
+/**/
+/*         CoTaskMemFree(pidlItem); */
+/*     } */
+/**/
+/*     // Clean up */
+/*     pEnumIDList->Release(); */
+/*     pRecycleBinFolder->Release(); */
+/*     CoTaskMemFree(pidlRecycleBin); */
+/*     pDesktopFolder->Release(); */
+/* } */
+
+
+
+
+
+
+
+
+
+
+
+
+
+void list_recycle_bin_brief() {
+    SHQUERYRBINFO qinfo;
+    qinfo.cbSize = sizeof(SHQUERYRBINFO);
+    if (SHQueryRecycleBin(NULL, &qinfo) == S_OK) {
+        printf("Number of items: %llu\n", qinfo.i64NumItems);
+        printf("Size of items: %llu bytes\n", qinfo.i64Size);
+    } else {
+        printf("Failed to query Recycle Bin.\n");
+    }
+}
+
+
+
+
+
+
+
+
+    const char *action = argv[1];
+    const char *file_path = argc > 2 ? argv[2] : NULL;
+
+
+
+    /* } else if (strcmp(action, "delete") == 0) { */
+    /*     if (file_path) { */
+    /*         delete_file(file_path); */
+    /*     } else { */
+    /*         printf("Please provide a file path for delete action.\n"); */
+    /*     } */
+    /* } else if (strcmp(action, "move") == 0) { */
+    /*     if (file_path) { */
+    /*         move_to_trash(file_path); */
+    /*     } else { */
+    /*         printf("Please provide a file path for move action.\n"); */
+    /*     } */
+    /* } else if (strcmp(action, "restore") == 0) { */
+    /*     if (file_path) { */
+    /*         restore_file(file_path); */
+    /*     } else { */
+    /*         printf("Please provide a file path for restore action.\n"); */
+    /*     } */
+    /* } */
