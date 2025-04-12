@@ -1,13 +1,12 @@
 #include <libgen.h>
 #include <dirent.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <sys/stat.h>
-#include <linux/limits.h>
 
-#include "src/common/utils.h"
-
-int isDirectoryEmpty(const char *path) {
+int is_directory_empty(const char *path) {
     DIR *dir = opendir(path);
     if (dir == NULL) {
         perror("Error opening directory");
@@ -26,7 +25,7 @@ int isDirectoryEmpty(const char *path) {
     return isEmpty;
 }
 
-const char* getUserName() {
+const char* get_user_name() {
     const char *username = getenv("LOGNAME");
     if (username == NULL) {
         username = getenv("USER");
@@ -38,8 +37,8 @@ const char* getUserName() {
     return username;
 }
 
-char* getPath(const char* base, const char* suffix){
-    const char* username = getUserName();
+char* get_path(const char* base, const char* suffix){
+    const char* username = get_user_name();
     if (username == NULL) {
         return NULL;
     }
@@ -54,7 +53,7 @@ char* getPath(const char* base, const char* suffix){
     return path;
 }
 
-char* getAbsolutePath(const char* relPath) {
+char* get_absolute_path(const char* relPath) {
     char* absPath = malloc(PATH_MAX);
     if (absPath == NULL) {
         perror("Memory allocation failed in 'getAbsolutePath()'");
@@ -75,7 +74,7 @@ char* getAbsolutePath(const char* relPath) {
     return absPath;
 }
 
-int getMaxDirWidth(const char *trashFilesDir, const char *trashInfoDir){
+int get_max_dir_width(const char *trashFilesDir, const char *trashInfoDir){
     int dirWidth = 0;
     int sizeWidth = 8;  
 
@@ -120,4 +119,3 @@ int getMaxDirWidth(const char *trashFilesDir, const char *trashInfoDir){
     }
     return dirWidth;
 }
-
