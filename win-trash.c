@@ -130,6 +130,41 @@ void list_recycle_bin_items() {
     CoUninitialize();
 }
 
+/* int is_trash_empty() { */
+/*     WCHAR recycleBinPath[MAX_PATH]; */
+/*     WIN32_FIND_DATA findFileData; */
+/*     HANDLE hFind; */
+/**/
+/*     // Get the path to the Recycle Bin */
+/*     if (!SHGetSpecialFolderPathW(NULL, recycleBinPath, CSIDL_BITBUCKET, FALSE)) { */
+/*         printf("Failed to get Recycle Bin path.\n"); */
+/*         return -1; // Error */
+/*     } */
+/**/
+/*     // Append wildcard to search for files in the Recycle Bin */
+/*     wcscat(recycleBinPath, L"\\*"); */
+/**/
+/*     // Find the first file in the Recycle Bin */
+/*     hFind = FindFirstFileW(recycleBinPath, &findFileData); */
+/*     if (hFind == INVALID_HANDLE_VALUE) { */
+/*         printf("Failed to enumerate Recycle Bin.\n"); */
+/*         return -1; // Error */
+/*     } */
+/**/
+/*     int isEmpty = 1; // Assume empty */
+/*     do { */
+/*         // Skip "." and ".." entries */
+/*         if (wcscmp(findFileData.cFileName, L".") != 0 && wcscmp(findFileData.cFileName, L"..") != 0) { */
+/*             isEmpty = 0; // Found a file or folder */
+/*             break; */
+/*         } */
+/*     } while (FindNextFileW(hFind, &findFileData)); */
+/**/
+/*     FindClose(hFind); */
+/*     return isEmpty; */
+/* } */
+
+
 void delete_file(const char *file_path) {
     if (DeleteFile(file_path)) {
         printf("Deleted: %s\n", file_path);
@@ -175,8 +210,12 @@ int main(int argc, char *argv[]) {
             free(printAscii);
         }
     } else if (argc == 2 && (strcmp(argv[1], "--list") == 0 || strcmp(argv[1], "-ls") == 0 )) {
-        list_recycle_bin_items();
-        /* decode_metadata("C:\\$Recycle.Bin\\S-1-5-21-2594502966-2529061830-489477826-1003\\$IASM9H5.jpg"); */
+        /* list_recycle_bin_items(); */
+        /* is_trash_empty(); */
+
+        /* decode_metadata("C:\\$Recycle.Bin\\S-1-5-21-2594502966-2529061830-489477826-1003\\$IUG9CCZ.png"); */
+
+        decode_metadata("C:\\$Recycle.Bin\\S-1-5-21-2594502966-2529061830-489477826-1003\\$ICH427R");
     } else if (strcmp(argv[1], "-h") == 0) {                                                                        // help
         printf("Usage: trashbhuwan --put [FILE] [DIRECTORY]\n"
                "Try 'trashbhuwan --help' for more information\n");

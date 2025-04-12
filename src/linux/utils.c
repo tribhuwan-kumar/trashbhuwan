@@ -1,3 +1,4 @@
+#if __linux__
 #include <libgen.h>
 #include <dirent.h>
 #include <stdio.h>
@@ -119,3 +120,4 @@ int get_max_dir_width(const char *trashFilesDir, const char *trashInfoDir){
     }
     return dirWidth;
 }
+#endif

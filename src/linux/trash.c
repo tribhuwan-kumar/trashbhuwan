@@ -1,3 +1,4 @@
+#if __linux__
 #include <libgen.h>
 #include <dirent.h>
 #include <string.h>
@@ -336,3 +337,4 @@ void empty_trash(const char *trash_files_dir, const char *trash_info_dir) {
     }
     closedir(dir);
 }
+#endif

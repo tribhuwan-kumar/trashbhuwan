@@ -1,3 +1,4 @@
+#if __linux__
 #ifndef HEADERS_H
 #define HEADERS_H
 
@@ -13,4 +14,5 @@ void create_trash_info(const char *filePath, const char *trashInfoDir);
 void list_trashed_files(const char *trashFilesDir, const char *trashInfoDir);
 void empty_trash(const char *trash_files_dir, const char *trash_info_dir);
 
+#endif
 #endif
