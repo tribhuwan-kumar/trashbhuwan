@@ -1,7 +1,14 @@
-# Trashbhuwan
+# trashbhuwan
 
 ## Introduction:
-A simple CLI Application for trashing & restoring files & its written in pure C. It uses the default trashcan of every Linux distribution. `trashbhuwan` remembers the original path of the trashed files & directories, so you can restore them later where they were. It is created with developer productivity in mind.
+CLI application for managing recycle bin. its cross-platform, currently supports Windows & Linux
+
+## Why?
+i'm a termit (terminal+hermit), i mostly time spend in terminal and leaving terminal is too painful for me, mostly when i just need to put some files in recycle bin.
+and the verity is i usually don't delete files bcz there is always a certainty of "what if the file i just deleted is might be needed after sometimes!" that's
+why i created this cli application, which solves the problem of putting and restoring file from recycle bin.
+
+i know there are multiple tools already created for this purpose, but they are written in python/javaScript & they aren't cross platform, which doesn't seem okay to me!
 
 Available options:
 
@@ -15,46 +22,17 @@ Available options:
 
 Pass multiple files separating by double quotes or single quotes.
 
-## Installation:
+## Integrations:
+<details>
+<summary>
 
-Compilation from source code & Installation:
-```bash
-curl -o trashbhuwan.c https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/trashbhuwan.c && gcc -o trashbhuwan trashbhuwan.c && sudo mv trashbhuwan /usr/local/bin/
-```
-Precompiled executable Installation:
-```bash
-curl -O https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/main/trashbhuwan && chmod +x trashbhuwan && sudo mv trashbhuwan /usr/local/bin/
-```
+### [`lf`](https://github.com/gokcehan/lf) terminal file manager:
+</summary>
 
-### Manual Installation:
-```bash
-git clone https://github.com/tribhuwan-kumar/trashbhuwan.git && cd trashbhuwan
-```
-Compile from source code:
-```
-gcc -o trashbhuwan trashbhuwan.c
-```
+###### use this functions & mapping to intergrate `trashbhuwan` with `lf`:
 
-### Configuration:
-Now you can either move, copy or create symbolic link of `trashbhuwan` to your `$PATH`
-
-Move:
 ```bash
-mv trashbhuwan /usr/local/bin/
-```
-or Copy:
-```bash
-cp trashbhuwan /usr/local/bin/
-```
-or Create Symbolic Link:
-```bash
-ln -s $PWD/trashbhuwan /usr/local/bin/
-```
-
-## Usage:
-If you're a [`lf`](https://github.com/gokcehan/lf) user, use this functions & mapping to intergrate `trashbhuwan` with `lf`:
-```bash
-# TRASHING
+# for putting a file in recycle bin
 cmd trash ${{
   files=$(printf "$fx" | tr '\n' ';')
   while [ "$files" ]; do
@@ -68,7 +46,7 @@ cmd trash ${{
   done
 }}
 
-# RESTORING
+# for restoring a file from recycle bin
 cmd restore_trash ${{
   files=$(printf "$fx" | tr '\n' ';')
   while [ "$files" ]; do
@@ -82,12 +60,30 @@ cmd restore_trash ${{
   done 
 }}
 
-# MAPPINGS
+# mappings
 map D trash
 map d restore_trash
+
+# only for linux
 map gt cd ~/.local/share/Trash/files
 ```
-If you're using [`neo-tree.nvim`](https://github.com/nvim-neo-tree/neo-tree.nvim) then use my fork with `trashbhuwan` integration [`tribhuwan-kumar/neo-tree.nvim`](https://github.com/tribhuwan-kumar/neo-tree.nvim)
+
+</details>
+
+<details>
+<summary>
+
+### [`neo-tree.nvim`](https://github.com/nvim-neo-tree/neo-tree.nvim) neovim file manager:
+</summary>
+
+use my fork of [`neo-tree.nvim`](https://github.com/tribhuwan-kumar/neo-tree.nvim) with `trashbhuwan` integration [`tribhuwan-kumar/neo-tree.nvim`](https://github.com/tribhuwan-kumar/neo-tree.nvim). it'll help you managing recycle bin directly from neovim.
+
+</details>
+
+
+## Architecture
+it uses the native api of windows so it'll work same as the file explorer of windows<br>
+on linux, it operates identical to the dolphin file manager.
 
 For more information see:
 ```bash
