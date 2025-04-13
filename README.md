@@ -1,16 +1,16 @@
 # trashbhuwan
 
-## Introduction:
-CLI application for managing recycle bin. its cross-platform, currently supports Windows & Linux
+## introduction:
+CLI application for managing recycle bin. its cross-platform, supports Windows & Linux
 
-## Why?
+## why?
 i'm a termit (terminal+hermit), i mostly time spend in terminal and leaving terminal is too painful for me, mostly when i just need to put some files in recycle bin.
 and the verity is i usually don't delete files bcz there is always a certainty of "what if the file i just deleted is might be needed after sometimes!" that's
 why i created this cli application, which solves the problem of putting and restoring file from recycle bin.
 
 i know there are multiple tools already created for this purpose, but they are written in python/javaScript & they aren't cross platform, which doesn't seem okay to me!
 
-Available options:
+available options:
 
     trashbhuwan --help                              : Show help
     trashbhuwan --empty                             : Empty the trash
@@ -20,9 +20,9 @@ Available options:
     trashbhuwan --restore-dest [file/directory]     : Restore trashed file or directory to specified destination
     trashbhuwan --delete [file/directory]           : Delete trashed file or directory permanently
 
-Pass multiple files separating by double quotes or single quotes.
+pass multiple files separating by double quotes or single quotes.
 
-## Integrations:
+## integrations:
 <details>
 <summary>
 
@@ -81,11 +81,11 @@ use my fork of [`neo-tree.nvim`](https://github.com/tribhuwan-kumar/neo-tree.nvi
 </details>
 
 
-## Architecture
+## architecture
 it uses the native api of windows so it'll work same as the file explorer of windows<br>
 on linux, it operates identical to the dolphin file manager.
 
-For more information see:
+for more information see:
 ```bash
 trashbhuwan --help
 ```
