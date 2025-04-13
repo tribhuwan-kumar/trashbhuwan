@@ -62,7 +62,7 @@ void decode_metadata(const char *iFilePath) {
     size_t dirLength = filename - utf8Path;
     strncpy(dirName, utf8Path, dirLength);
 
-    printf("%-10s %-10s %s\n", readableSize, dirName, fileName);
+    printf("%-10s %s %10s\n", readableSize, dirName, fileName);
 
     // deletion time
     /* printf("Deleted on: %04d-%02d-%02d %02d:%02d:%02d\n", */

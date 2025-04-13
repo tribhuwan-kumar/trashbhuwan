@@ -14,6 +14,7 @@
 #endif
 
 #ifdef _WIN32
+    #include <io.h>
     #include "src/windows/headers.h"
 #endif
 
@@ -90,7 +91,6 @@ int main(int argc, char *argv[]) {
         
         #ifdef _WIN32
             list_recycle_bin_items();
-            
         #endif
     } 
     
@@ -130,6 +130,16 @@ int main(int argc, char *argv[]) {
                     fprintf(stderr, "'%s' doesn't exist!!\n", fileNames);
                 }
                 free(resolvedPath);
+            }
+        #endif
+        #ifdef _WIN32
+            for (int i = 2; i < argc; i++) {
+                char *fileName = argv[i];
+                if (_access(fileName, 0) == 0) {
+                    put_file(fileName);
+                } else {
+                    fprintf(stderr, "'%s' doesn't exist!!\n", fileName);
+                };
             }
         #endif
     } 

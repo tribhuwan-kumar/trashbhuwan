@@ -103,23 +103,50 @@ void empty_trash(const char *file_path) {
     /* empty_trash trash */
 }
 
-void put_file(const char *file_path) {
-    SHFILEOPSTRUCT file_op = {
-        NULL,
-        FO_DELETE,
-        file_path,
-        "",
-        FOF_ALLOWUNDO | FOF_NOCONFIRMATION,
-        FALSE,
-        NULL,
-        NULL
-    };
+int put_file(const char *file_path) {
+    char *path = NULL;
+    size_t path_len = strlen(file_path);
+
+    if (path_len >= MAX_PATH) {
+        path = (char *)malloc(path_len + 5); // null terminator included
+        if (!path) {
+            fprintf(stderr, "Memory allocation failed!!\n");
+            return 1;
+        }
+        snprintf(path, path_len + 5, "\\\\?\\%s", file_path);
+    } else {
+        static char local_path[MAX_PATH + 1];
+        path = local_path;
+        snprintf(path, MAX_PATH + 1, "%s", file_path);
+    }
+    
+    size_t path_with_null_len = strlen(path) + 2;
+    char *path_with_null = (char *)malloc(path_with_null_len);
+
+    if (!path_with_null) {
+        fprintf(stderr, "Memory allocation failed!!\n");
+        if (path != file_path) free(path);
+        return 1;
+    }
+    snprintf(path_with_null, path_with_null_len, "%s", path);
+    path_with_null[path_with_null_len - 1] = '\0'; // double null-terminate
+
+    // prepare SHFILEOPSTRUCT
+    SHFILEOPSTRUCT file_op = {0};
+    file_op.wFunc = FO_DELETE;
+    file_op.pFrom = path_with_null;
+    file_op.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION;
 
     if (SHFileOperation(&file_op) == 0) {
-        printf("Moved to Recycle Bin: %s\n", file_path);
+        return 0; 
     } else {
-        printf("Failed to move to Recycle Bin: %s\n", file_path);
+        fprintf(stderr, "Failed to put file in recycle bin!!\n");
+        return 1; 
     }
+
+    // cleanup
+    if (path != file_path) free(path);
+    free(path_with_null);
 }
 
 void delete_file(const char *file_path) {
