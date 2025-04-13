@@ -1,0 +1,58 @@
+[
+ {
+  "directory": "C:\\Users\\eirae\\Downloads\\trashbhuwan",
+  "arguments": [
+   "gcc",
+   "-g",
+   "-I./src/windows",
+   "-I./src/common",
+   "-c",
+   "-o",
+   "src/windows/utils.o",
+   "src/windows/utils.c"
+  ],
+  "file": "src/windows/utils.c"
+ },
+ {
+  "directory": "C:\\Users\\eirae\\Downloads\\trashbhuwan",
+  "arguments": [
+   "gcc",
+   "-g",
+   "-I./src/windows",
+   "-I./src/common",
+   "-c",
+   "-o",
+   "src/windows/trash.o",
+   "src/windows/trash.c"
+  ],
+  "file": "src/windows/trash.c"
+ },
+ {
+  "directory": "C:\\Users\\eirae\\Downloads\\trashbhuwan",
+  "arguments": [
+   "gcc",
+   "-g",
+   "-I./src/windows",
+   "-I./src/common",
+   "-c",
+   "-o",
+   "src/common/utils.o",
+   "src/common/utils.c"
+  ],
+  "file": "src/common/utils.c"
+ },
+ {
+  "directory": "C:\\Users\\eirae\\Downloads\\trashbhuwan",
+  "arguments": [
+   "gcc",
+   "-g",
+   "-I./src/windows",
+   "-I./src/common",
+   "-c",
+   "-o",
+   "trashbhuwan.o",
+   "trashbhuwan.c"
+  ],
+  "file": "trashbhuwan.c"
+ }
+]
