@@ -1,0 +1,71 @@
+name: Build and Release
+
+on:
+  workflow_dispatch: # only manual triggering
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: windows-latest
+            platform: windows
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up environment
+        run: |
+          echo "OS=${{ matrix.platform }}" >> $GITHUB_ENV
+
+      - name: Build with Makefile
+        run: |
+          make clean
+          make all
+
+      - name: Archive binary
+        run: |
+          mkdir -p dist
+          if [ "${{ matrix.platform }}" == "linux" ]; then
+            cp trashbhuwan dist/trashbhuwan-linux
+          else
+            cp trashbhuwan.exe dist/trashbhuwan-windows.exe
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.platform }}-binary
+          path: dist/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.tag_name }}
+          release_name: ${{ github.event.inputs.release_name }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/
+          asset_name: ${{ matrix.platform }}-binary
+          asset_content_type: application/octet-stream
