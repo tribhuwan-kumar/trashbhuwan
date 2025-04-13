@@ -29,6 +29,7 @@ jobs:
           make all
 
       - name: Archive binary
+        shell: bash
         run: |
           mkdir -p dist
           if [ "${{ matrix.platform }}" == "linux" ]; then
