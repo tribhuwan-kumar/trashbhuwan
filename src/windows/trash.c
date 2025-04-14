@@ -45,23 +45,22 @@ void list_recycle_bin() {
             create_metadata_arr(&metadataArray, &metadataCount, &metadataCapacity, metadata);
         }
         free(RFilePaths);
+        print_metadata(metadataArray, metadataCount);
     } else {
         printf("Trash is empty!!\n");
     }
-
-    print_metadata(metadataArray, metadataCount);
-
     // cleanup
     free(metadataArray);
 }
 
 void restore_file(const char *fileNameArg) {
     int count = 0;
+    int fileFound = 0;
     char **RFilePaths = list_$R(&count);
 
     if (RFilePaths) {
         for (int i = 0; i < count; i++) {
-            // get the $I
+            // get the $I from $R
             char dirName[MAX_PATH];
             char fileName[MAX_PATH];
             char filePath[MAX_PATH];
@@ -78,27 +77,40 @@ void restore_file(const char *fileNameArg) {
             // decode the $I
             IFileMetadata metadata = decode_metadata(filePath);
             if (strcmp(metadata.fileName, fileNameArg) == 0) {
+                fileFound = 1;
+                char fromPath[MAX_PATH + 2];
+                char toPath[MAX_PATH + 2];
+
+                // double null terminate
+                strncpy_s(fromPath, sizeof(fromPath), RFilePaths[i], _TRUNCATE);
+                fromPath[strlen(fromPath) + 1] = '\0';
+                strncpy_s(toPath, sizeof(toPath), metadata.utf8Path, _TRUNCATE);
+                toPath[sizeof(toPath) - 1] = '\0';
+
                 // restore file using SHFileOperation
                 SHFILEOPSTRUCT fileOp = {0};
                 fileOp.wFunc = FO_MOVE;
-                fileOp.pFrom = RFilePaths[i];
-                fileOp.pTo = metadata.utf8Path;
+                fileOp.pFrom = fromPath;
+                fileOp.pTo = toPath;
                 fileOp.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI;
 
                 if (SHFileOperation(&fileOp) != 0) {
-                    fprintf(stderr, "Failed to restore: %s\n", fileName);
+                    fprintf(stderr, "Failed to restore: %s\n", metadata.fileName);
                 }
                 break;
             }  
         }
-    } else {
-        printf("Trash is empty!!\n");
+        free(RFilePaths);
     }
-    free(RFilePaths);
+
+    if (!fileFound) {
+        printf("'%s' doesn't exist in the recycle bin!!\n", fileNameArg);
+    }
 }
 
 void restore_file_to_dest(const char *fileNameArg, const char *destPath) {
     int count = 0;
+    int fileFound = 0;
     char **RFilePaths = list_$R(&count);
 
     if (RFilePaths) {
@@ -120,27 +132,36 @@ void restore_file_to_dest(const char *fileNameArg, const char *destPath) {
             // decode the $I
             IFileMetadata metadata = decode_metadata(filePath);
             if (strcmp(metadata.fileName, fileNameArg) == 0) {
-                char filePath[MAX_PATH];
-                strcpy_s(filePath, sizeof(filePath), destPath);
-                strncpy_s(filePath, sizeof(filePath), destPath, _TRUNCATE);
-                strncat_s(filePath, sizeof(filePath), metadata.fileName, _TRUNCATE);
+                fileFound = 1;
+                char toPath[MAX_PATH + 2];
+                char fromPath[MAX_PATH + 2];
+
+                // double null terminate
+                strncpy_s(fromPath, sizeof(fromPath), RFilePaths[i], _TRUNCATE);
+                fromPath[strlen(fromPath) + 1] = '\0';
+
+                strncpy_s(toPath, sizeof(toPath), destPath, _TRUNCATE);
+                strncat_s(toPath, sizeof(toPath), metadata.fileName, _TRUNCATE);
+                toPath[sizeof(toPath) - 1] = '\0';
+
                 // restore file using SHFileOperation
                 SHFILEOPSTRUCT fileOp = {0};
                 fileOp.wFunc = FO_MOVE;
-                fileOp.pFrom = RFilePaths[i];
-                fileOp.pTo = filePath;
+                fileOp.pFrom = fromPath;
+                fileOp.pTo = toPath;
                 fileOp.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI;
 
                 if (SHFileOperation(&fileOp) != 0) {
-                    fprintf(stderr, "Failed to restore: %s\n", fileName);
+                    fprintf(stderr, "Failed to restore: %s\n", metadata.fileName);
                 }
                 break;
-            } 
+            }
         }
-    } else {
-        printf("Trash is empty!!\n");
+        free(RFilePaths);
     }
-    free(RFilePaths);
+    if (!fileFound) {
+        printf("'%s' doesn't exist in the recycle bin!!\n", fileNameArg);
+    }
 }
 
 void empty_trash(const char *file_path) {
@@ -150,7 +171,7 @@ void empty_trash(const char *file_path) {
 int put_file(const char *filePath) {
     char *path = NULL;
     size_t pathLen = strlen(filePath);
-
+    // if path exceeds the `MAX_PATH`
     if (pathLen >= MAX_PATH) {
         path = (char *)malloc(pathLen + 5); // null terminator included
         if (!path) {
@@ -163,10 +184,9 @@ int put_file(const char *filePath) {
         path = localPath;
         snprintf(path, MAX_PATH + 1, "%s", filePath);
     }
-    
+    // dynamic allocation
     size_t pathWithNullLen = strlen(path) + 2;
     char *pathWithNull = (char *)malloc(pathWithNullLen);
-
     if (!pathWithNull) {
         fprintf(stderr, "Memory allocation failed!!\n");
         if (path != filePath) free(path);
@@ -174,20 +194,17 @@ int put_file(const char *filePath) {
     }
     snprintf(pathWithNull, pathWithNullLen, "%s", path);
     pathWithNull[pathWithNullLen - 1] = '\0'; // double null-terminate
-
     // prepare SHFILEOPSTRUCT
     SHFILEOPSTRUCT fileOp = {0};
     fileOp.wFunc = FO_DELETE;
     fileOp.pFrom = pathWithNull;
     fileOp.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION;
-
     if (SHFileOperation(&fileOp) == 0) {
         return 0; 
     } else {
         fprintf(stderr, "Failed to put '%s' in recycle bin!!\n", filePath);
         return 1; 
     }
-
     // cleanup
     if (path != filePath) free(path);
     free(pathWithNull);

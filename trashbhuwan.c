@@ -15,6 +15,7 @@
 #endif
 
 #ifdef _WIN32
+    #include <sys/stat.h>
     #include <io.h>
     #include "src/windows/headers.h"
 #endif
@@ -188,10 +189,20 @@ int main(int argc, char *argv[]) {
             free(destPath);
         #endif
         #ifdef _WIN32
-            if (argv[argc - 1] != NULL) {
-                for (int i = 2; i < argc - 1; i++) {
-                    char *fileNames = argv[i];
-                    restore_file_to_dest(fileNames, argv[argc - 1]);
+            if ((argc > 3) && (argv[argc - 1] != NULL)) {
+                char *dir = argv[argc - 1];
+                struct _stat info;
+                if (_access(dir, 0) == 0) {
+                    if ((_stat(dir, &info) == 0) && (info.st_mode & _S_IFDIR)) {
+                        for (int i = 2; i < argc - 1; i++) {
+                            char *fileNames = argv[i];
+                            restore_file_to_dest(fileNames, dir);
+                        }
+                    } else {
+                        printf("Specified path '%s' is not a directory!!\n", dir);
+                    }
+                } else {
+                    printf("Specified destination directory '%s' doesn't exist!!\n", dir);
                 }
             }
         #endif
