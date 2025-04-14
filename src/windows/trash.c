@@ -8,7 +8,6 @@
 #include <wchar.h>
 
 #include "./headers.h"
-#include "../common/utils.h"
 
 void list_recycle_bin_items() {
     HRESULT hr;
@@ -46,6 +45,16 @@ void list_recycle_bin_items() {
         return;
     }
 
+    IFileMetadata *metadataArray = NULL;
+    int metadataCount = 0;
+    int metadataCapacity = 10;
+
+    metadataArray = (IFileMetadata *)malloc(metadataCapacity * sizeof(IFileMetadata));
+    if (!metadataArray) {
+        fprintf(stderr, "Error: Memory allocation failed.\n");
+        exit(1);
+    }
+
     LPITEMIDLIST pidlItem;
     ULONG fetched;
     while (pEnumIDList->lpVtbl->Next(pEnumIDList, 1, &pidlItem, &fetched) == S_OK) {
@@ -78,17 +87,17 @@ void list_recycle_bin_items() {
                 strncat_s(filePath, sizeof(filePath), fileName, _TRUNCATE);
                 IFileMetadata metadata = decode_metadata(filePath);
 
-                printf("Path: %s\n", metadata.utf8Path);
-                printf("Size: %s\n", metadata.readableSize);
-                printf("Dir Name: %s\n", metadata.dirName);
-                printf("File Name: %s\n", metadata.fileName);
+                create_metadata_arr(&metadataArray, &metadataCount, &metadataCapacity, metadata);
             }
         }
 
         CoTaskMemFree((LPVOID)pidlItem);
     }
 
+    print_metadata(metadataArray, metadataCount);
+
     // cleanup
+    free(metadataArray);
     pEnumIDList->lpVtbl->Release(pEnumIDList);
     pRecycleBinFolder->lpVtbl->Release(pRecycleBinFolder);
     CoTaskMemFree((LPVOID)pidlRecycleBin);

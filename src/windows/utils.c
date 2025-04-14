@@ -9,6 +9,7 @@
 #include <shlobj.h>
 
 #include "./headers.h"
+#include "../common/utils.h"
 
 #pragma pack(push, 1)
 typedef struct {
@@ -64,8 +65,21 @@ IFileMetadata decode_metadata(const char *iFilePath) {
     return metadata;
 }
 
+void create_metadata_arr(IFileMetadata **metadataArray, int *metadataCount, int *metadataCapacity, IFileMetadata newMetadata) {
+    if (*metadataCount >= *metadataCapacity) {
+        *metadataCapacity *= 2;
+        *metadataArray = (IFileMetadata *)realloc(*metadataArray, *metadataCapacity * sizeof(IFileMetadata));
+        if (!*metadataArray) {
+            fprintf(stderr, "Error: Memory reallocation failed.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    (*metadataArray)[*metadataCount] = newMetadata;
+    (*metadataCount)++;
+}
+
 void readable_size(ULONGLONG size, char *buffer, size_t buffer_size) {
-    const char *units[] = {"B", "KB", "MB", "GB"};
+    const char *units[] = {"B", "K", "M", "G"};
     double readableSize = (double)size;
     int unitIndex = 0;
 
@@ -75,12 +89,74 @@ void readable_size(ULONGLONG size, char *buffer, size_t buffer_size) {
     }
 
     if (unitIndex == 2) {
-        snprintf(buffer, buffer_size, "%.1f %s", readableSize, units[unitIndex]);
+        snprintf(buffer, buffer_size, "%.1f%s", readableSize, units[unitIndex]);
     } else if (unitIndex == 3) {
-        snprintf(buffer, buffer_size, "%.2f %s", readableSize, units[unitIndex]);
+        snprintf(buffer, buffer_size, "%.2f%s", readableSize, units[unitIndex]);
     } else {
-        snprintf(buffer, buffer_size, "%.0f %s", readableSize, units[unitIndex]);
+        snprintf(buffer, buffer_size, "%.0f%s", readableSize, units[unitIndex]);
     }
+}
+
+ULONGLONG parse_readable_size(const char *readableSize) {
+    ULONGLONG size = 0;
+    double value;
+    char unit[3] = {0};
+
+    if (sscanf_s(readableSize, "%lf%2s", &value, unit, (unsigned int)sizeof(unit)) == 2) {
+        if (strcmp(unit, "K") == 0) {
+            size = (ULONGLONG)(value * 1024);
+        } else if (strcmp(unit, "M") == 0) {
+            size = (ULONGLONG)(value * 1024 * 1024);
+        } else if (strcmp(unit, "G") == 0) {
+            size = (ULONGLONG)(value * 1024 * 1024 * 1024);
+        } else {
+            size = (ULONGLONG)value;
+        }
+    }
+    return size;
+}
+
+ULONGLONG calculate_total_size(IFileMetadata *metadataArray, int metadataCount) {
+    ULONGLONG totalSize = 0;
+    for (int i = 0; i < metadataCount; i++) {
+        totalSize += parse_readable_size(metadataArray[i].readableSize);
+    }
+    return totalSize;
+}
+
+void print_metadata(IFileMetadata *metadataArray, int metadataCount) {
+    int sizeWidth = 8;
+    int maxDirWidth = strlen(__files_dirs_char);
+
+    for (int i = 0; i < metadataCount; i++) {
+        int pathLen = strlen(metadataArray[i].dirName);
+
+        if (pathLen > maxDirWidth) maxDirWidth = pathLen;
+    }
+
+    printf("%s%-*s%s%s%-*s%s%s%s%s\n", 
+           YELLOW, sizeWidth+1, __size_char, NC,
+           YELLOW, maxDirWidth+5, __deleted_from_char, NC,
+           YELLOW, __files_dirs_char, NC
+           );
+
+    for (int i = 0; i < metadataCount; i++) {
+        printf("%-*s %-*s     %s\n", 
+               sizeWidth, metadataArray[i].readableSize,
+               maxDirWidth, metadataArray[i].dirName,
+               metadataArray[i].fileName
+            );
+    }
+
+    ULONGLONG totalSize = calculate_total_size(metadataArray, metadataCount);
+    char totalSizeReadable[32];
+    readable_size(totalSize, totalSizeReadable, sizeof(totalSizeReadable));
+
+    printf("%s%-*s%s%s%-*s%s%s%s%s\n", 
+           YELLOW, sizeWidth+1, totalSizeReadable, NC,
+           YELLOW, maxDirWidth+5, __total_size_char, NC,
+           YELLOW, __dash_char, NC
+        );
 }
 
 #endif

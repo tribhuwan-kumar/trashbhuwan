@@ -17,6 +17,8 @@ void delete_file(const char *file_path);
 void restore_file(const char *file_path);
 IFileMetadata decode_metadata(const char *iFilePath);
 void readable_size(ULONGLONG size, char *buffer, size_t buffer_size);
+void print_metadata(IFileMetadata *metadataArray, int metadataCount);
+void create_metadata_arr(IFileMetadata **metadataArray, int *metadataCount, int *metadataCapacity, IFileMetadata newMetadata);
 
 #endif
 #endif
