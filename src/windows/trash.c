@@ -136,14 +136,19 @@ void restore_file_to_dest(const char *fileNameArg, const char *destPath) {
                 char toPath[MAX_PATH + 2];
                 char fromPath[MAX_PATH + 2];
 
+                // prepend a slash
+                size_t fileNameLen = strlen(metadata.fileName);
+                char fileNameWithSlash[fileNameLen + 2];
+                fileNameWithSlash[0] = '/';
+                strncpy_s(fileNameWithSlash + 1, sizeof(fileNameWithSlash) - 1, metadata.fileName, _TRUNCATE);
+
                 // double null terminate
                 strncpy_s(fromPath, sizeof(fromPath), RFilePaths[i], _TRUNCATE);
                 fromPath[strlen(fromPath) + 1] = '\0';
 
                 strncpy_s(toPath, sizeof(toPath), destPath, _TRUNCATE);
-                strncat_s(toPath, sizeof(toPath), metadata.fileName, _TRUNCATE);
+                strncat_s(toPath, sizeof(toPath), fileNameWithSlash, _TRUNCATE);
                 toPath[sizeof(toPath) - 1] = '\0';
-
                 // restore file using SHFileOperation
                 SHFILEOPSTRUCT fileOp = {0};
                 fileOp.wFunc = FO_MOVE;
