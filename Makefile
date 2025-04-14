@@ -1,6 +1,6 @@
 CC = gcc
 TARGET = trashbhuwan
-CFLAGS = -g
+CFLAGS = -g -Wall
 
 ifeq ($(OS),Windows_NT)
     PLATFORM = windows

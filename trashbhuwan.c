@@ -48,11 +48,11 @@ int main(int argc, char *argv[]) {
 
     // list
     else if (argc == 2 && (strcmp(argv[1], "--list") == 0 || strcmp(argv[1], "-ls") == 0 )) {
-        const char *size = "SIZE";
-        const char *deleted_from = "DELETED FROM";
-        const char *files_dirs = "FILES & DIRS";
-        const char *total_size = "TOTAL SIZE";
-        const char *dash = "------------";
+        /* const char *size = "SIZE"; */
+        /* const char *deleted_from = "DELETED FROM"; */
+        /* const char *files_dirs = "FILES & DIRS"; */
+        /* const char *total_size = "TOTAL SIZE"; */
+        /* const char *dash = "------------"; */
         #if __linux__
             char totalSize[RTSIG_MAX];
 
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
     } 
 
     // empty trash
-    else if (argc == 2 && strcmp(argv[1], "--empty") == 0 || strcmp(argv[1], "-em") == 0) {
+    else if ((argc == 2 && strcmp(argv[1], "--empty") == 0) || (strcmp(argv[1], "-em") == 0)) {
         #if __linux__
             empty_trash(trashFilesDir, trashInfoDir);
         #endif

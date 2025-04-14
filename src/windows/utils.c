@@ -20,13 +20,13 @@ typedef struct {
 } IFILEENTRY;
 #pragma pack(pop)
 
-void decode_metadata(const char *iFilePath) {
-    char readableSize[32];
+IFileMetadata decode_metadata(const char *iFilePath) {
+    IFileMetadata metadata = {0};
     HANDLE hFile = CreateFileA(iFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 
     if (hFile == INVALID_HANDLE_VALUE) {
         printf("Failed to open: %s\n", iFilePath);
-        return;
+        return metadata;
     }
 
     DWORD fileSize = GetFileSize(hFile, NULL);
@@ -37,40 +37,31 @@ void decode_metadata(const char *iFilePath) {
         printf("Failed to read: %s\n", iFilePath);
         CloseHandle(hFile);
         free(buffer);
-        return;
+        return metadata;
     }
 
-    SYSTEMTIME stUTC, stLocal;
     DWORD header = *(DWORD *)(buffer + 0);
     ULONGLONG size = *(ULONGLONG *)(buffer + 8);
     FILETIME deletionTime = *(FILETIME *)(buffer + 16);
     WCHAR *originalPath = (WCHAR *)(buffer + 28); // leave two empty bytes, correct offset
 
-    char utf8Path[MAX_PATH * 4];
-    WideCharToMultiByte(CP_UTF8, 0, originalPath, -1, utf8Path, sizeof(utf8Path), NULL, NULL);
-
     // ignore deletion time
+    SYSTEMTIME stUTC, stLocal;
     FileTimeToSystemTime(&deletionTime, &stUTC);
     SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
 
-    readable_size(size, readableSize, sizeof(readableSize));
-    char dirName[MAX_PATH];
-    char fileName[MAX_PATH];
+    WideCharToMultiByte(CP_UTF8, 0, originalPath, -1, metadata.utf8Path, sizeof(metadata.utf8Path), NULL, NULL);
+    readable_size(size, metadata.readableSize, sizeof(metadata.readableSize));
 
-    const char *filename = PathFindFileName(utf8Path);
-    strcpy(fileName, filename);
-    size_t dirLength = filename - utf8Path;
-    strncpy(dirName, utf8Path, dirLength);
+    const char *filename = PathFindFileName(metadata.utf8Path);
+    strcpy_s(metadata.fileName, sizeof(metadata.fileName), filename);
 
-    printf("%-10s %s %10s\n", readableSize, dirName, fileName);
-
-    // deletion time
-    /* printf("Deleted on: %04d-%02d-%02d %02d:%02d:%02d\n", */
-    /*        stLocal.wYear, stLocal.wMonth, stLocal.wDay, */
-    /*        stLocal.wHour, stLocal.wMinute, stLocal.wSecond); */
+    size_t dirLength = filename - metadata.utf8Path;
+    strncpy_s(metadata.dirName, sizeof(metadata.dirName), metadata.utf8Path, dirLength);
 
     CloseHandle(hFile);
     free(buffer);
+    return metadata;
 }
 
 void readable_size(ULONGLONG size, char *buffer, size_t buffer_size) {

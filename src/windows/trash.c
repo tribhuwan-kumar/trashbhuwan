@@ -18,7 +18,7 @@ void list_recycle_bin_items() {
     // initialize COM
     CoInitialize(NULL);
 
-    // get the Recycle Bin folder
+    // get the Recycle Bin directory
     hr = SHGetSpecialFolderLocation(NULL, CSIDL_BITBUCKET, &pidlRecycleBin);
     if (FAILED(hr)) {
         printf("Failed to get Recycle Bin folder.\n");
@@ -26,7 +26,7 @@ void list_recycle_bin_items() {
         return;
     }
 
-    // get IShellFolder interface for the Recycle Bin
+    // get IShellFolder interface
     hr = SHBindToObject(NULL, pidlRecycleBin, NULL, &IID_IShellFolder, (void**)&pRecycleBinFolder);
     if (FAILED(hr)) {
         printf("Failed to bind to Recycle Bin folder.\n");
@@ -52,28 +52,35 @@ void list_recycle_bin_items() {
         char filePath[MAX_PATH];
         WIN32_FIND_DATA findData;
 
-        // get the display name of the item
+        // display name of the item
         hr = pRecycleBinFolder->lpVtbl->GetDisplayNameOf(pRecycleBinFolder, pidlItem, SHGDN_FORPARSING, &str);
         if (SUCCEEDED(hr)) {
             // convert STRRET to a string
             StrRetToBuf(&str, pidlItem, filePath, MAX_PATH);
 
-            // get file metadata
             if (SHGetDataFromIDList(pRecycleBinFolder, pidlItem, SHGDFIL_FINDDATA, &findData, sizeof(findData)) == S_OK) {
                 char dirName[MAX_PATH];
                 char fileName[MAX_PATH];
 
                 const char *filename = PathFindFileName(filePath);
-                strcpy(fileName, filename);
+                strcpy_s(fileName, sizeof(fileName), filename);
                 size_t dirLength = filename - filePath;
-                strncpy(dirName, filePath, dirLength);
+                strncpy_s(dirName, sizeof(dirName), filePath, dirLength);
 
                 char *prefix = strstr(fileName, "$R");
                 if (prefix != NULL) {
                     prefix[1] = 'I';
                 }
+
+                /* strncpy_s(filePath, sizeof(filePath), dirName, _TRUNCATE); */
+                /* strncat_s(filePath, sizeof(filePath), fileName, _TRUNCATE); */
                 snprintf(filePath, sizeof(filePath), "%s%s", dirName, fileName);
-                decode_metadata(filePath);
+                IFileMetadata metadata = decode_metadata(filePath);
+
+                printf("Path: %s\n", metadata.utf8Path);
+                printf("Size: %s\n", metadata.readableSize);
+                printf("Dir Name: %s\n", metadata.dirName);
+                printf("File Name: %s\n", metadata.fileName);
             }
         }
 
