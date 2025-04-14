@@ -8,6 +8,7 @@
 #include <wchar.h>
 
 #include "./headers.h"
+#include "../common/utils.h"
 
 void list_recycle_bin_items() {
     HRESULT hr;
@@ -67,14 +68,14 @@ void list_recycle_bin_items() {
                 size_t dirLength = filename - filePath;
                 strncpy_s(dirName, sizeof(dirName), filePath, dirLength);
 
+                // replace $R with $I for decoding metadata
                 char *prefix = strstr(fileName, "$R");
                 if (prefix != NULL) {
                     prefix[1] = 'I';
                 }
 
-                /* strncpy_s(filePath, sizeof(filePath), dirName, _TRUNCATE); */
-                /* strncat_s(filePath, sizeof(filePath), fileName, _TRUNCATE); */
-                snprintf(filePath, sizeof(filePath), "%s%s", dirName, fileName);
+                strncpy_s(filePath, sizeof(filePath), dirName, _TRUNCATE);
+                strncat_s(filePath, sizeof(filePath), fileName, _TRUNCATE);
                 IFileMetadata metadata = decode_metadata(filePath);
 
                 printf("Path: %s\n", metadata.utf8Path);

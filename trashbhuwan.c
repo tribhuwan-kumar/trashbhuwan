@@ -11,15 +11,13 @@
     #include <dirent.h>
     #include <unistd.h>
     #include "src/linux/headers.h"
+    #include "../common/utils.h"
 #endif
 
 #ifdef _WIN32
     #include <io.h>
     #include "src/windows/headers.h"
 #endif
-
-#define YELLOW "\033[0;33m"
-#define NC "\033[0m"
 
 int main(int argc, char *argv[]) {
     #if __linux__
@@ -48,11 +46,6 @@ int main(int argc, char *argv[]) {
 
     // list
     else if (argc == 2 && (strcmp(argv[1], "--list") == 0 || strcmp(argv[1], "-ls") == 0 )) {
-        /* const char *size = "SIZE"; */
-        /* const char *deleted_from = "DELETED FROM"; */
-        /* const char *files_dirs = "FILES & DIRS"; */
-        /* const char *total_size = "TOTAL SIZE"; */
-        /* const char *dash = "------------"; */
         #if __linux__
             char totalSize[RTSIG_MAX];
 

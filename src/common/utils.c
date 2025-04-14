@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+const char *__size_char = "SIZE";
+const char *__deleted_from_char = "DELETED FROM";
+const char *__files_dirs_char = "FILES & DIRS";
+const char *__total_size_char = "TOTAL SIZE";
+const char *__dash_char = "------------";
+
 int ask_confirmation() {
     printf("Are you sure you want to empty the trash? This action can't be undone. [y/N] ");
     char response;
