@@ -4,6 +4,7 @@
   "arguments": [
    "gcc",
    "-g",
+   "-Wall",
    "-I./src/windows",
    "-I./src/common",
    "-c",
@@ -18,6 +19,7 @@
   "arguments": [
    "gcc",
    "-g",
+   "-Wall",
    "-I./src/windows",
    "-I./src/common",
    "-c",
@@ -32,6 +34,7 @@
   "arguments": [
    "gcc",
    "-g",
+   "-Wall",
    "-I./src/windows",
    "-I./src/common",
    "-c",
@@ -46,6 +49,7 @@
   "arguments": [
    "gcc",
    "-g",
+   "-Wall",
    "-I./src/windows",
    "-I./src/common",
    "-c",

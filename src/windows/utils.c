@@ -21,6 +21,7 @@ typedef struct {
 } IFILEENTRY;
 #pragma pack(pop)
 
+// the $I files are in little endian format
 IFileMetadata decode_metadata(const char *iFilePath) {
     IFileMetadata metadata = {0};
     HANDLE hFile = CreateFileA(iFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
@@ -78,7 +79,7 @@ void create_metadata_arr(IFileMetadata **metadataArray, int *metadataCount, int 
     (*metadataCount)++;
 }
 
-void readable_size(ULONGLONG size, char *buffer, size_t buffer_size) {
+void readable_size(ULONGLONG size, char *buffer, size_t bufferSize) {
     const char *units[] = {"B", "K", "M", "G"};
     double readableSize = (double)size;
     int unitIndex = 0;
@@ -89,11 +90,11 @@ void readable_size(ULONGLONG size, char *buffer, size_t buffer_size) {
     }
 
     if (unitIndex == 2) {
-        snprintf(buffer, buffer_size, "%.1f%s", readableSize, units[unitIndex]);
+        snprintf(buffer, bufferSize, "%.1f%s", readableSize, units[unitIndex]);
     } else if (unitIndex == 3) {
-        snprintf(buffer, buffer_size, "%.2f%s", readableSize, units[unitIndex]);
+        snprintf(buffer, bufferSize, "%.2f%s", readableSize, units[unitIndex]);
     } else {
-        snprintf(buffer, buffer_size, "%.0f%s", readableSize, units[unitIndex]);
+        snprintf(buffer, bufferSize, "%.0f%s", readableSize, units[unitIndex]);
     }
 }
 
@@ -157,6 +158,76 @@ void print_metadata(IFileMetadata *metadataArray, int metadataCount) {
            YELLOW, maxDirWidth+5, __total_size_char, NC,
            YELLOW, __dash_char, NC
         );
+}
+
+char **list_$R(int *count) {
+    char **filePaths = NULL;
+    int fileCount = 0;
+
+    HRESULT hr;
+    LPITEMIDLIST pidlRecycleBin;
+    IShellFolder *pRecycleBinFolder = NULL;
+    IEnumIDList *pEnumIDList = NULL;
+
+    // initialize COM
+    CoInitialize(NULL);
+
+    // get the Recycle Bin directory
+    hr = SHGetSpecialFolderLocation(NULL, CSIDL_BITBUCKET, &pidlRecycleBin);
+    if (FAILED(hr)) {
+        printf("Failed to get Recycle Bin folder.\n");
+        CoUninitialize();
+        return NULL;
+    }
+
+    // get IShellFolder interface
+    hr = SHBindToObject(NULL, pidlRecycleBin, NULL, &IID_IShellFolder, (void**)&pRecycleBinFolder);
+    if (FAILED(hr)) {
+        printf("Failed to bind to Recycle Bin folder.\n");
+        CoTaskMemFree((LPVOID)pidlRecycleBin);
+        CoUninitialize();
+        return NULL;
+    }
+
+    // enumerate items in the Recycle Bin
+    hr = pRecycleBinFolder->lpVtbl->EnumObjects(pRecycleBinFolder, NULL, SHCONTF_FOLDERS | SHCONTF_NONFOLDERS, &pEnumIDList);
+    if (FAILED(hr)) {
+        printf("Failed to enumerate items in Recycle Bin.\n");
+        pRecycleBinFolder->lpVtbl->Release(pRecycleBinFolder);
+        CoTaskMemFree((LPVOID)pidlRecycleBin);
+        CoUninitialize();
+        return NULL;
+    }
+
+    LPITEMIDLIST pidlItem;
+    ULONG fetched;
+    while (pEnumIDList->lpVtbl->Next(pEnumIDList, 1, &pidlItem, &fetched) == S_OK) {
+        STRRET str;
+        char filePath[MAX_PATH];
+        WIN32_FIND_DATA findData;
+
+        // get the items, it'll be a $R file
+        hr = pRecycleBinFolder->lpVtbl->GetDisplayNameOf(pRecycleBinFolder, pidlItem, SHGDN_FORPARSING, &str);
+        if (SUCCEEDED(hr)) {
+            // convert STRRET to a string
+            StrRetToBuf(&str, pidlItem, filePath, MAX_PATH);
+            // fetch some metadata data too
+            if (SHGetDataFromIDList(pRecycleBinFolder, pidlItem, SHGDFIL_FINDDATA, &findData, sizeof(findData)) == S_OK) {
+                filePaths = realloc(filePaths, (fileCount + 1) * sizeof(char *));
+                filePaths[fileCount] = _strdup(filePath);
+                fileCount++;
+            }
+        }
+        CoTaskMemFree((LPVOID)pidlItem);
+    }
+    // cleanup
+    pEnumIDList->lpVtbl->Release(pEnumIDList);
+    pRecycleBinFolder->lpVtbl->Release(pRecycleBinFolder);
+    CoTaskMemFree((LPVOID)pidlRecycleBin);
+    CoUninitialize();
+
+    *count = fileCount;
+    return filePaths;
 }
 
 #endif

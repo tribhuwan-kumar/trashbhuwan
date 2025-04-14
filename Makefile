@@ -22,7 +22,7 @@ $(TARGET): $(OBJ)
 
 clean:
     ifeq ($(OS),Windows_NT)
-	    del /Q $(subst /,\,$(OBJ)) $(subst /,\,$(TARGET))
+	    del /Q $(subst /,\,$(OBJ)) $(subst /,\,$(TARGET)) trashbhuwan.exe
     else
 	    rm -rf $(OBJ) $(TARGET)
     endif

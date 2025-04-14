@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
         #endif
         
         #ifdef _WIN32
-            list_recycle_bin_items();
+            list_recycle_bin();
         #endif
     } 
     
@@ -161,6 +161,12 @@ int main(int argc, char *argv[]) {
                 restore_trashed_file(fileNames);
             }
         #endif
+        #ifdef _WIN32
+            for (int i = 2; i < argc; i++) {
+                char *fileName = argv[i];
+                restore_file(fileName);
+            }
+        #endif
     } 
 
     // restore to specific destination
@@ -169,7 +175,7 @@ int main(int argc, char *argv[]) {
             printf("No input files were provided!!\n");
         }
         else if (argc == 3) {
-            printf("Please specify a destination path!!\n");
+            printf("Please specify a destination directory!!\n");
         }
         #if __linux__
             char *destPath = get_absolute_path(argv[argc - 1]);
@@ -180,6 +186,14 @@ int main(int argc, char *argv[]) {
                 }
             }
             free(destPath);
+        #endif
+        #ifdef _WIN32
+            if (argv[argc - 1] != NULL) {
+                for (int i = 2; i < argc - 1; i++) {
+                    char *fileNames = argv[i];
+                    restore_file_to_dest(fileNames, argv[argc - 1]);
+                }
+            }
         #endif
     } 
 
