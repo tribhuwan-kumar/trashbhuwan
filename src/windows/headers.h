@@ -14,9 +14,9 @@ typedef struct {
 void list_recycle_bin();
 void empty_recycle_bin();
 char **list_$R(int *count);
-int put_file(const char *file_path);
-void delete_file(const char *file_path);
+int put_file(const char *filePath);
 void restore_file(const char *fileName);
+void delete_file(const char *fileNameArg);
 IFileMetadata decode_metadata(const char *iFilePath);
 void readable_size(ULONGLONG size, char *buffer, size_t bufferSize);
 void print_metadata(IFileMetadata *metadataArray, int metadataCount);

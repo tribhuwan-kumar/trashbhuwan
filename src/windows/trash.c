@@ -99,13 +99,14 @@ void restore_file(const char *fileNameArg) {
                     fprintf(stderr, "Failed to restore: %s\n", metadata.fileName);
                 }
                 break;
-            }  
+            }
         }
         free(rFilePaths);
-    }
-
-    if (!fileFound) {
-        printf("'%s' doesn't exist in the recycle bin!!\n", fileNameArg);
+        if (!fileFound) {
+            printf("'%s' doesn't exist in the recycle bin!!\n", fileNameArg);
+        }
+    } else {
+        printf("Recycle bin is empty!!\n");
     }
 }
 
@@ -164,9 +165,11 @@ void restore_file_to_dest(const char *fileNameArg, const char *destPath) {
             }
         }
         free(rFilePaths);
-    }
-    if (!fileFound) {
-        printf("'%s' doesn't exist in the recycle bin!!\n", fileNameArg);
+        if (!fileFound) {
+            printf("'%s' doesn't exist in the recycle bin!!\n", fileNameArg);
+       }
+    } else {
+        printf("Recycle bin is empty!!\n");
     }
 }
 
@@ -267,14 +270,62 @@ int put_file(const char *filePath) {
     free(pathWithNull);
 }
 
-void delete_file(const char *file_path) {
-    if (DeleteFile(file_path)) {
-        printf("Deleted: %s\n", file_path);
+void delete_file(const char *fileNameArg) {
+    int count = 0;
+    int fileFound = 0;
+    char **rFilePaths = list_$R(&count);
+    if (rFilePaths) {
+        for (int i = 0; i < count; i++) {
+            char dirName[MAX_PATH];
+            char fileName[MAX_PATH];
+            char iFilePath[MAX_PATH + 2];
+            char rFilePath[MAX_PATH + 2];
+
+            // get the $I
+            const char *filename = PathFindFileName(rFilePaths[i]);
+            strcpy_s(fileName, sizeof(fileName), filename);
+            size_t dirLength = filename - rFilePaths[i];
+            strncpy_s(dirName, sizeof(dirName), rFilePaths[i], dirLength);
+            char *prefix = strstr(fileName, "$R");
+            if (prefix != NULL) {
+                prefix[1] = 'I';
+            }
+            strncpy_s(iFilePath, sizeof(iFilePath), dirName, _TRUNCATE);
+            strncat_s(iFilePath, sizeof(iFilePath), fileName, _TRUNCATE);
+
+            IFileMetadata metadata = decode_metadata(iFilePath);
+
+            if (strcmp(metadata.fileName, fileNameArg) == 0) {
+                fileFound = 1;
+                // remember to null terminate
+                iFilePath[strlen(iFilePath) + 1] = '\0';
+                strncpy_s(rFilePath, sizeof(rFilePath), rFilePaths[i], _TRUNCATE);
+                rFilePath[strlen(rFilePath) + 1] = '\0';
+
+                SHFILEOPSTRUCT fileOpR = {0};
+                fileOpR.wFunc = FO_DELETE;
+                fileOpR.pFrom = rFilePath;
+                fileOpR.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI | FOF_SILENT;
+
+                if (SHFileOperation(&fileOpR) == 0) {
+                    SHFILEOPSTRUCT fileOpI = {0};
+                    fileOpI.wFunc = FO_DELETE;
+                    fileOpI.pFrom = iFilePath;
+                    fileOpI.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI | FOF_SILENT;
+                    if (SHFileOperation(&fileOpI) != 0) {
+                        perror("Failed to empty recycle bin");
+                    }
+                } else if (fileOpR.fAnyOperationsAborted) {
+                    perror("Operation aborted.");
+                }
+            }
+        }
+        free(rFilePaths);
+        if (!fileFound) {
+            printf("'%s' doesn't exist in the recycle bin!!\n", fileNameArg);
+        }
     } else {
-        printf("Failed to delete: %s\n", file_path);
+        printf("Recycle bin is empty!!\n");
     }
 }
-
-
-
 #endif

@@ -149,6 +149,12 @@ int main(int argc, char *argv[]) {
                 delete_trashed_file(fileNames);
             }
         #endif
+        #ifdef _WIN32
+            for (int i = 2; i < argc; i++) {
+                char *fileName = argv[i];
+                delete_file(fileName);
+            }
+        #endif
     } 
     
     // restore
