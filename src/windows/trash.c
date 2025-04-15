@@ -93,7 +93,7 @@ void restore_file(const char *fileNameArg) {
                 fileOp.wFunc = FO_MOVE;
                 fileOp.pFrom = fromPath;
                 fileOp.pTo = toPath;
-                fileOp.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI;
+                fileOp.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI | FOF_SILENT;
 
                 if (SHFileOperation(&fileOp) != 0) {
                     fprintf(stderr, "Failed to restore: %s\n", metadata.fileName);
@@ -155,7 +155,7 @@ void restore_file_to_dest(const char *fileNameArg, const char *destPath) {
                 fileOp.wFunc = FO_MOVE;
                 fileOp.pFrom = fromPath;
                 fileOp.pTo = toPath;
-                fileOp.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI;
+                fileOp.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI | FOF_SILENT;
 
                 if (SHFileOperation(&fileOp) != 0) {
                     fprintf(stderr, "Failed to restore: %s\n", metadata.fileName);
@@ -178,10 +178,11 @@ void empty_recycle_bin() {
     char **rFilePaths = list_$R(&count);
     if (rFilePaths) {
         for (int i = 0; i < count; i++) {
-            // get the $I
             char dirName[MAX_PATH];
             char fileName[MAX_PATH];
-            char iFilePath[MAX_PATH];
+            char iFilePath[MAX_PATH + 2];
+            char rFilePath[MAX_PATH + 2];
+            // get the $I
             const char *filename = PathFindFileName(rFilePaths[i]);
             strcpy_s(fileName, sizeof(fileName), filename);
             size_t dirLength = filename - rFilePaths[i];
@@ -192,15 +193,30 @@ void empty_recycle_bin() {
             }
             strncpy_s(iFilePath, sizeof(iFilePath), dirName, _TRUNCATE);
             strncat_s(iFilePath, sizeof(iFilePath), fileName, _TRUNCATE);
+            iFilePath[strlen(iFilePath) + 1] = '\0';
 
-            if (!DeleteFile(rFilePaths[i])) {
-                perror("Failed to delete");
-                /* fprintf(stderr, "Failed to delete file: %s\n", rFilePaths[i]); */
+            // null-terminate $R
+            strncpy_s(rFilePath, sizeof(rFilePath), rFilePaths[i], _TRUNCATE);
+            rFilePath[strlen(rFilePath) + 1] = '\0';
+
+            SHFILEOPSTRUCT fileOpR = {0};
+            fileOpR.wFunc = FO_DELETE;
+            fileOpR.pFrom = rFilePath;
+            fileOpR.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI | FOF_SILENT;
+
+            if (SHFileOperation(&fileOpR) == 0) {
+                SHFILEOPSTRUCT fileOpI = {0};
+                fileOpI.wFunc = FO_DELETE;
+                fileOpI.pFrom = iFilePath;
+                fileOpI.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI | FOF_SILENT;
+                if (SHFileOperation(&fileOpI) != 0) {
+                    perror("Failed to empty recycle bin");
+                }
+            } else if (fileOpR.fAnyOperationsAborted) {
+                perror("Operation aborted.");
             }
-
-            if (!DeleteFile(iFilePath)) {
-                perror("Failed to delete");
-                /* fprintf(stderr, "Failed to delete file: %s\n", rFilePaths[i]); */
+            else {
+                perror("Failed to empty recycle bin");
             }
         }
         free(rFilePaths);
@@ -239,7 +255,7 @@ int put_file(const char *filePath) {
     SHFILEOPSTRUCT fileOp = {0};
     fileOp.wFunc = FO_DELETE;
     fileOp.pFrom = pathWithNull;
-    fileOp.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NO_UI;
+    fileOp.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NO_UI | FOF_SILENT;
     if (SHFileOperation(&fileOp) == 0) {
         return 0; 
     } else {
