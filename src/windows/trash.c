@@ -8,6 +8,7 @@
 #include <wchar.h>
 
 #include "./headers.h"
+#include "../common/utils.h"
 
 void list_recycle_bin() {
     IFileMetadata *metadataArray = NULL;
@@ -21,33 +22,33 @@ void list_recycle_bin() {
     }
 
     int count = 0;
-    char **RFilePaths = list_$R(&count);
+    char **rFilePaths = list_$R(&count);
 
-    if (RFilePaths) {
+    if (rFilePaths) {
         for (int i = 0; i < count; i++) {
             char dirName[MAX_PATH];
             char fileName[MAX_PATH];
-            char filePath[MAX_PATH];
+            char iFilePath[MAX_PATH];
             // replace $R with $I for decoding metadata
-            const char *filename = PathFindFileName(RFilePaths[i]);
+            const char *filename = PathFindFileName(rFilePaths[i]);
             strcpy_s(fileName, sizeof(fileName), filename);
-            size_t dirLength = filename - RFilePaths[i];
-            strncpy_s(dirName, sizeof(dirName), RFilePaths[i], dirLength);
+            size_t dirLength = filename - rFilePaths[i];
+            strncpy_s(dirName, sizeof(dirName), rFilePaths[i], dirLength);
             char *prefix = strstr(fileName, "$R");
             if (prefix != NULL) {
                 prefix[1] = 'I';
             }
-            strncpy_s(filePath, sizeof(filePath), dirName, _TRUNCATE);
-            strncat_s(filePath, sizeof(filePath), fileName, _TRUNCATE);
+            strncpy_s(iFilePath, sizeof(iFilePath), dirName, _TRUNCATE);
+            strncat_s(iFilePath, sizeof(iFilePath), fileName, _TRUNCATE);
 
-            IFileMetadata metadata = decode_metadata(filePath);
+            IFileMetadata metadata = decode_metadata(iFilePath);
 
             create_metadata_arr(&metadataArray, &metadataCount, &metadataCapacity, metadata);
         }
-        free(RFilePaths);
+        free(rFilePaths);
         print_metadata(metadataArray, metadataCount);
     } else {
-        printf("Trash is empty!!\n");
+        printf("Recycle bin is empty!!\n");
     }
     // cleanup
     free(metadataArray);
@@ -56,33 +57,33 @@ void list_recycle_bin() {
 void restore_file(const char *fileNameArg) {
     int count = 0;
     int fileFound = 0;
-    char **RFilePaths = list_$R(&count);
+    char **rFilePaths = list_$R(&count);
 
-    if (RFilePaths) {
+    if (rFilePaths) {
         for (int i = 0; i < count; i++) {
             // get the $I from $R
             char dirName[MAX_PATH];
             char fileName[MAX_PATH];
-            char filePath[MAX_PATH];
-            const char *filename = PathFindFileName(RFilePaths[i]);
+            char iFilePath[MAX_PATH];
+            const char *filename = PathFindFileName(rFilePaths[i]);
             strcpy_s(fileName, sizeof(fileName), filename);
-            size_t dirLength = filename - RFilePaths[i];
-            strncpy_s(dirName, sizeof(dirName), RFilePaths[i], dirLength);
+            size_t dirLength = filename - rFilePaths[i];
+            strncpy_s(dirName, sizeof(dirName), rFilePaths[i], dirLength);
             char *prefix = strstr(fileName, "$R");
             if (prefix != NULL) {
                 prefix[1] = 'I';
             }
-            strncpy_s(filePath, sizeof(filePath), dirName, _TRUNCATE);
-            strncat_s(filePath, sizeof(filePath), fileName, _TRUNCATE);
+            strncpy_s(iFilePath, sizeof(iFilePath), dirName, _TRUNCATE);
+            strncat_s(iFilePath, sizeof(iFilePath), fileName, _TRUNCATE);
             // decode the $I
-            IFileMetadata metadata = decode_metadata(filePath);
+            IFileMetadata metadata = decode_metadata(iFilePath);
             if (strcmp(metadata.fileName, fileNameArg) == 0) {
                 fileFound = 1;
                 char fromPath[MAX_PATH + 2];
                 char toPath[MAX_PATH + 2];
 
                 // double null terminate
-                strncpy_s(fromPath, sizeof(fromPath), RFilePaths[i], _TRUNCATE);
+                strncpy_s(fromPath, sizeof(fromPath), rFilePaths[i], _TRUNCATE);
                 fromPath[strlen(fromPath) + 1] = '\0';
                 strncpy_s(toPath, sizeof(toPath), metadata.utf8Path, _TRUNCATE);
                 toPath[sizeof(toPath) - 1] = '\0';
@@ -92,7 +93,7 @@ void restore_file(const char *fileNameArg) {
                 fileOp.wFunc = FO_MOVE;
                 fileOp.pFrom = fromPath;
                 fileOp.pTo = toPath;
-                fileOp.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI;
+                fileOp.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI;
 
                 if (SHFileOperation(&fileOp) != 0) {
                     fprintf(stderr, "Failed to restore: %s\n", metadata.fileName);
@@ -100,7 +101,7 @@ void restore_file(const char *fileNameArg) {
                 break;
             }  
         }
-        free(RFilePaths);
+        free(rFilePaths);
     }
 
     if (!fileFound) {
@@ -111,26 +112,26 @@ void restore_file(const char *fileNameArg) {
 void restore_file_to_dest(const char *fileNameArg, const char *destPath) {
     int count = 0;
     int fileFound = 0;
-    char **RFilePaths = list_$R(&count);
+    char **rFilePaths = list_$R(&count);
 
-    if (RFilePaths) {
+    if (rFilePaths) {
         for (int i = 0; i < count; i++) {
             // get the $I
             char dirName[MAX_PATH];
             char fileName[MAX_PATH];
-            char filePath[MAX_PATH];
-            const char *filename = PathFindFileName(RFilePaths[i]);
+            char iFilePath[MAX_PATH];
+            const char *filename = PathFindFileName(rFilePaths[i]);
             strcpy_s(fileName, sizeof(fileName), filename);
-            size_t dirLength = filename - RFilePaths[i];
-            strncpy_s(dirName, sizeof(dirName), RFilePaths[i], dirLength);
+            size_t dirLength = filename - rFilePaths[i];
+            strncpy_s(dirName, sizeof(dirName), rFilePaths[i], dirLength);
             char *prefix = strstr(fileName, "$R");
             if (prefix != NULL) {
                 prefix[1] = 'I';
             }
-            strncpy_s(filePath, sizeof(filePath), dirName, _TRUNCATE);
-            strncat_s(filePath, sizeof(filePath), fileName, _TRUNCATE);
+            strncpy_s(iFilePath, sizeof(iFilePath), dirName, _TRUNCATE);
+            strncat_s(iFilePath, sizeof(iFilePath), fileName, _TRUNCATE);
             // decode the $I
-            IFileMetadata metadata = decode_metadata(filePath);
+            IFileMetadata metadata = decode_metadata(iFilePath);
             if (strcmp(metadata.fileName, fileNameArg) == 0) {
                 fileFound = 1;
                 char toPath[MAX_PATH + 2];
@@ -143,7 +144,7 @@ void restore_file_to_dest(const char *fileNameArg, const char *destPath) {
                 strncpy_s(fileNameWithSlash + 1, sizeof(fileNameWithSlash) - 1, metadata.fileName, _TRUNCATE);
 
                 // double null terminate
-                strncpy_s(fromPath, sizeof(fromPath), RFilePaths[i], _TRUNCATE);
+                strncpy_s(fromPath, sizeof(fromPath), rFilePaths[i], _TRUNCATE);
                 fromPath[strlen(fromPath) + 1] = '\0';
 
                 strncpy_s(toPath, sizeof(toPath), destPath, _TRUNCATE);
@@ -154,7 +155,7 @@ void restore_file_to_dest(const char *fileNameArg, const char *destPath) {
                 fileOp.wFunc = FO_MOVE;
                 fileOp.pFrom = fromPath;
                 fileOp.pTo = toPath;
-                fileOp.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI;
+                fileOp.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI;
 
                 if (SHFileOperation(&fileOp) != 0) {
                     fprintf(stderr, "Failed to restore: %s\n", metadata.fileName);
@@ -162,15 +163,50 @@ void restore_file_to_dest(const char *fileNameArg, const char *destPath) {
                 break;
             }
         }
-        free(RFilePaths);
+        free(rFilePaths);
     }
     if (!fileFound) {
         printf("'%s' doesn't exist in the recycle bin!!\n", fileNameArg);
     }
 }
 
-void empty_trash(const char *file_path) {
-    /* empty_trash trash */
+void empty_recycle_bin() {
+    if (!ask_confirmation()) {
+        exit(EXIT_SUCCESS);
+    }
+    int count = 0;
+    char **rFilePaths = list_$R(&count);
+    if (rFilePaths) {
+        for (int i = 0; i < count; i++) {
+            // get the $I
+            char dirName[MAX_PATH];
+            char fileName[MAX_PATH];
+            char iFilePath[MAX_PATH];
+            const char *filename = PathFindFileName(rFilePaths[i]);
+            strcpy_s(fileName, sizeof(fileName), filename);
+            size_t dirLength = filename - rFilePaths[i];
+            strncpy_s(dirName, sizeof(dirName), rFilePaths[i], dirLength);
+            char *prefix = strstr(fileName, "$R");
+            if (prefix != NULL) {
+                prefix[1] = 'I';
+            }
+            strncpy_s(iFilePath, sizeof(iFilePath), dirName, _TRUNCATE);
+            strncat_s(iFilePath, sizeof(iFilePath), fileName, _TRUNCATE);
+
+            if (!DeleteFile(rFilePaths[i])) {
+                perror("Failed to delete");
+                /* fprintf(stderr, "Failed to delete file: %s\n", rFilePaths[i]); */
+            }
+
+            if (!DeleteFile(iFilePath)) {
+                perror("Failed to delete");
+                /* fprintf(stderr, "Failed to delete file: %s\n", rFilePaths[i]); */
+            }
+        }
+        free(rFilePaths);
+    } else {
+        printf("Recycle bin is empty!!\n");
+    }
 }
 
 int put_file(const char *filePath) {
@@ -203,7 +239,7 @@ int put_file(const char *filePath) {
     SHFILEOPSTRUCT fileOp = {0};
     fileOp.wFunc = FO_DELETE;
     fileOp.pFrom = pathWithNull;
-    fileOp.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION;
+    fileOp.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NO_UI;
     if (SHFileOperation(&fileOp) == 0) {
         return 0; 
     } else {

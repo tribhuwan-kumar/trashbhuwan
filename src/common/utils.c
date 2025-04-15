@@ -8,7 +8,12 @@ const char *__total_size_char = "TOTAL SIZE";
 const char *__dash_char = "------------";
 
 int ask_confirmation() {
-    printf("Are you sure you want to empty the trash? This action can't be undone. [y/N] ");
+    #if __linux__
+        printf("Are you sure you want to empty the trash? This action can't be undone. [y/N] ");
+    #endif
+    #ifdef _WIN32
+        printf("Are you sure you want to empty the recycle bin? This action can't be undone. [y/N] ");
+    #endif
     char response;
     scanf("%c", &response);
     if (response == 'y' || response == 'Y') {

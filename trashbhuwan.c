@@ -213,6 +213,9 @@ int main(int argc, char *argv[]) {
         #if __linux__
             empty_trash(trashFilesDir, trashInfoDir);
         #endif
+        #ifdef _WIN32
+            empty_recycle_bin();
+        #endif
     } 
 
     // help

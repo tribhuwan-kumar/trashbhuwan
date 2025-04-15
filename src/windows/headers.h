@@ -12,6 +12,7 @@ typedef struct {
 } IFileMetadata;
 
 void list_recycle_bin();
+void empty_recycle_bin();
 char **list_$R(int *count);
 int put_file(const char *file_path);
 void delete_file(const char *file_path);
