@@ -41,9 +41,13 @@ jobs:
 
       - name: Set up MinGW (Windows)
         if: matrix.platform == 'windows'
-        uses: egor-tensin/setup-mingw@v2
-        with:
-          platform: x64
+        run: |
+          # Install Chocolatey if not already installed
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+          iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          choco install mingw --yes --force
+          Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1; RefreshEnv.cmd
 
       - name: Build with Makefile
         run: |
