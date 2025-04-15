@@ -11,7 +11,7 @@
     #include <dirent.h>
     #include <unistd.h>
     #include "src/linux/headers.h"
-    #include "../common/utils.h"
+    #include "src/common/utils.h"
 #endif
 
 #ifdef _WIN32
@@ -77,9 +77,9 @@ int main(int argc, char *argv[]) {
             if (is_directory_empty(trashFilesDir) || is_directory_empty(trashInfoDir)) {
                 printf("Trash is empty!!\n");
             } else {
-                printf("%s%-*s%s %s%-*s%s %s%-s%s\n", YELLOW, sizeWidth, size, NC, YELLOW, dirWidth, deleted_from, NC, YELLOW, files_dirs, NC);
+                printf("%s%-*s%s %s%-*s%s %s%-s%s\n", YELLOW, sizeWidth, __size_char, NC, YELLOW, dirWidth, __deleted_from_char, NC, YELLOW, __files_dirs_char, NC);
                 list_trashed_files(trashFilesDir, trashInfoDir);
-                printf("%s%-*s%s %s%-*s%s %s%-s%s\n", YELLOW, sizeWidth, totalSize, NC, YELLOW, dirWidth, total_size, NC, YELLOW, dash, NC);
+                printf("%s%-*s%s %s%-*s%s %s%-s%s\n", YELLOW, sizeWidth, totalSize, NC, YELLOW, dirWidth, __total_size_char, NC, YELLOW, __dash_char, NC);
             }
         #endif
         
