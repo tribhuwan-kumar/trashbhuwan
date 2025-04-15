@@ -2,6 +2,15 @@ name: Build and Release
 
 on:
   workflow_dispatch: # only manual triggering
+    inputs:
+      tag_name:
+        description: 'Tag name for the release'
+        required: false
+        default: ''
+      release_name:
+        description: 'Release name for the release'
+        required: false
+        default: ''
 
 jobs:
   build:
@@ -22,6 +31,19 @@ jobs:
       - name: Set up environment
         run: |
           echo "OS=${{ matrix.platform }}" >> $GITHUB_ENV
+
+      - name: Set up GCC (Linux)
+        if: matrix.platform == 'linux'
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: latest
+          platform: x64
+
+      - name: Set up MinGW (Windows)
+        if: matrix.platform == 'windows'
+        uses: egor-tensin/setup-mingw@v2
+        with:
+          platform: x64
 
       - name: Build with Makefile
         run: |
@@ -51,13 +73,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set dynamic tag and release name
+        id: set_release_info
+        run: |
+          # Set default tag and release name if not provided
+          TAG_NAME="${{ github.event.inputs.tag_name }}"
+          RELEASE_NAME="${{ github.event.inputs.release_name }}"
+          if [ -z "$TAG_NAME" ]; then
+            TAG_NAME="v$(date +'%Y.%m.%d')"
+          fi
+          if [ -z "$RELEASE_NAME" ]; then
+            RELEASE_NAME="Release $(date +'%Y-%m-%d')"
+          fi
+          echo "tag_name=$TAG_NAME" >> $GITHUB_ENV
+          echo "release_name=$RELEASE_NAME" >> $GITHUB_ENV
+
       - name: Create GitHub Release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.event.inputs.tag_name }}
-          release_name: ${{ github.event.inputs.release_name }}
+          tag_name: ${{ env.tag_name }}
+          release_name: ${{ env.release_name }}
           draft: false
           prerelease: false
 
