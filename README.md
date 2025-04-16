@@ -10,15 +10,27 @@ why i created this cli application, which solves the problem of putting and rest
 
 i know there are multiple tools already created for this purpose, but they are written in python/javaScript & they aren't cross platform, which doesn't seem okay to me!
 
+## installation 
+
+for linux:
+```
+
+```
+
+on windows:
+```ps1
+Invoke-Expression (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/refs/heads/main/install.ps1')
+```
+
 available options:
 
     trashbhuwan --help                              : Show help
-    trashbhuwan --empty                             : Empty the trash
-    trashbhuwan --list                              : List all trashed files & directories with disk usage
-    trashbhuwan --put [file/directory]              : Put files & directories in trash
-    trashbhuwan --restore [file/directory]          : Restore trashed file or directory
-    trashbhuwan --restore-dest [file/directory]     : Restore trashed file or directory to specified destination
-    trashbhuwan --delete [file/directory]           : Delete trashed file or directory permanently
+    trashbhuwan --empty                             : Empty the recycle bin
+    trashbhuwan --list                              : List all files of recycle bin with disk usage
+    trashbhuwan --put [file/directory]              : Put files in recycle bin
+    trashbhuwan --restore [file/directory]          : Restore a file from recycle bin
+    trashbhuwan --restore-dest [file/directory]     : Restore a file or directory to specified destination
+    trashbhuwan --delete [file/directory]           : Delete files from recycle bin, permanently!
 
 pass multiple files separating by double quotes or single quotes.
 
@@ -83,7 +95,7 @@ use my fork of [`neo-tree.nvim`](https://github.com/tribhuwan-kumar/neo-tree.nvi
 
 ## architecture
 it uses the native api of windows so it'll work same as the file explorer of windows<br>
-on linux, it operates identical to the dolphin file manager.
+on linux, it manages trashcan same as the dolphin file manager!
 
 for more information see:
 ```bash
