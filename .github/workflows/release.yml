@@ -59,13 +59,10 @@ jobs:
         run: |
           mkdir -p dist
           if [ "${{ matrix.platform }}" == "linux" ]; then
-            mkdir -p trashbhuwan-linux
-            cp trashbhuwan trashbhuwan-linux/
-            tar -czvf dist/trashbhuwan-linux.tar.gz trashbhuwan-linux
+            tar -czvf dist/trashbhuwan-linux.tar.gz trashbhuwan
           else
-            mkdir -p trashbhuwan-windows
             cp trashbhuwan.exe trashbhuwan-windows/
-            zip -r dist/trashbhuwan-windows.zip trashbhuwan-windows
+            zip -r dist/trashbhuwan-windows.zip trashbhuwan.exe
           fi
 
       - name: Upload artifact
