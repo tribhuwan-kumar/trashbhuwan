@@ -61,7 +61,6 @@ jobs:
           if [ "${{ matrix.platform }}" == "linux" ]; then
             tar -czvf dist/trashbhuwan-linux.tar.gz trashbhuwan
           else
-            cp trashbhuwan.exe trashbhuwan-windows/
             zip -r dist/trashbhuwan-windows.zip trashbhuwan.exe
           fi
 
