@@ -103,12 +103,25 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload Release Assets
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Upload Linux binary
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/
-          asset_name: ${{ matrix.platform }}-binary
+          asset_path: linux-binary/trashbhuwan-linux
+          asset_name: trashbhuwan-linux
+          asset_content_type: application/octet-stream
+
+      - name: Upload Windows binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: windows-binary/trashbhuwan-windows.exe
+          asset_name: trashbhuwan-windows.exe
           asset_content_type: application/octet-stream
