@@ -22,7 +22,7 @@ on windows:
 Invoke-Expression (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/refs/heads/main/install.ps1')
 ```
 
-available options:
+options:
 
     trashbhuwan --help                              : Show help
     trashbhuwan --empty                             : Empty the recycle bin
