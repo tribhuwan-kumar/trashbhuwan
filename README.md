@@ -13,8 +13,8 @@ i know there are multiple tools already created for this purpose, but they are w
 ## installation 
 
 for linux:
-```
-
+```bash
+curl -sSL https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/refs/heads/main/install.sh | bash
 ```
 
 on windows:
