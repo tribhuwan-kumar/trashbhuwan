@@ -65,7 +65,7 @@ jobs:
           else
             mkdir -p trashbhuwan-windows
             cp trashbhuwan.exe trashbhuwan-windows/
-            Compress-Archive -Path dist/trashbhuwan-windows.zip -DestinationPath trashbhuwan-windows -Force
+            zip -r dist/trashbhuwan-windows.zip trashbhuwan-windows
           fi
 
       - name: Upload artifact
