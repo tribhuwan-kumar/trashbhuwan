@@ -3,6 +3,10 @@
 ## introduction:
 CLI application for managing recycle bin. its cross-platform, supports Windows & Linux
 
+## demo
+
+https://github.com/user-attachments/assets/a1add3cf-85d8-4dce-896a-6d4baf427880
+
 ## why?
 i'm a termit (terminal+hermit), i mostly time spend in terminal and leaving terminal is too painful for me, mostly when i just need to put some files in recycle bin.
 and the verity is i usually don't delete files bcz there is always a certainty of "what if the file i just deleted is might be needed after sometimes!" that's
@@ -13,8 +17,8 @@ i know there are multiple tools already created for this purpose, but they are w
 ## installation 
 
 for linux:
-```
-
+```bash
+curl -sSL https://raw.githubusercontent.com/tribhuwan-kumar/trashbhuwan/refs/heads/main/install.sh | bash
 ```
 
 on windows:
