@@ -93,7 +93,7 @@ void restore_file(const char *fileNameArg) {
                 fileOp.wFunc = FO_MOVE;
                 fileOp.pFrom = fromPath;
                 fileOp.pTo = toPath;
-                fileOp.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI | FOF_SILENT;
+                fileOp.fFlags = FOF_NOCONFIRMATION;
 
                 if (SHFileOperation(&fileOp) != 0) {
                     fprintf(stderr, "Failed to restore: %s\n", metadata.fileName);
@@ -156,7 +156,7 @@ void restore_file_to_dest(const char *fileNameArg, const char *destPath) {
                 fileOp.wFunc = FO_MOVE;
                 fileOp.pFrom = fromPath;
                 fileOp.pTo = toPath;
-                fileOp.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI | FOF_SILENT;
+                fileOp.fFlags = FOF_NOCONFIRMATION;
 
                 if (SHFileOperation(&fileOp) != 0) {
                     fprintf(stderr, "Failed to restore: %s\n", metadata.fileName);
@@ -205,13 +205,13 @@ void empty_recycle_bin() {
             SHFILEOPSTRUCT fileOpR = {0};
             fileOpR.wFunc = FO_DELETE;
             fileOpR.pFrom = rFilePath;
-            fileOpR.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI | FOF_SILENT;
+            fileOpR.fFlags = FOF_NOCONFIRMATION;
 
             if (SHFileOperation(&fileOpR) == 0) {
                 SHFILEOPSTRUCT fileOpI = {0};
                 fileOpI.wFunc = FO_DELETE;
                 fileOpI.pFrom = iFilePath;
-                fileOpI.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI | FOF_SILENT;
+                fileOpI.fFlags = FOF_NOCONFIRMATION;
                 if (SHFileOperation(&fileOpI) != 0) {
                     perror("Failed to empty recycle bin");
                 }
@@ -258,7 +258,7 @@ int put_file(const char *filePath) {
     SHFILEOPSTRUCT fileOp = {0};
     fileOp.wFunc = FO_DELETE;
     fileOp.pFrom = pathWithNull;
-    fileOp.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NO_UI | FOF_SILENT;
+    fileOp.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION;
     if (SHFileOperation(&fileOp) == 0) {
         return 0; 
     } else {
@@ -305,13 +305,13 @@ void delete_file(const char *fileNameArg) {
                 SHFILEOPSTRUCT fileOpR = {0};
                 fileOpR.wFunc = FO_DELETE;
                 fileOpR.pFrom = rFilePath;
-                fileOpR.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI | FOF_SILENT;
+                fileOpR.fFlags = FOF_NOCONFIRMATION;
 
                 if (SHFileOperation(&fileOpR) == 0) {
                     SHFILEOPSTRUCT fileOpI = {0};
                     fileOpI.wFunc = FO_DELETE;
                     fileOpI.pFrom = iFilePath;
-                    fileOpI.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NO_UI | FOF_SILENT;
+                    fileOpI.fFlags = FOF_NOCONFIRMATION;
                     if (SHFileOperation(&fileOpI) != 0) {
                         perror("Failed to empty recycle bin");
                     }
