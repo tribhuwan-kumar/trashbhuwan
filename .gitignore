@@ -1,3 +1,6 @@
 *.o
 *.exe
 *.cache
+/trash
+/imp
+/tests/*.mp4
